@@ -4,6 +4,8 @@ using FluentValidation;
 
 namespace Chargily.Pay.V2.Internal.Requests;
 
+
+
 internal sealed record UpdatePriceRequest
 {
     [JsonIgnore] public string Id { get; init; }

@@ -9,14 +9,14 @@ internal record BaseObjectResponse
     public string Id { get; init; }
     
     [JsonPropertyName("entity")]
-    public EntityType EntityType { get; init; }
+    public string EntityType { get; init; }
     
     [JsonPropertyName("livemode")]
     public bool IsLiveMode { get; init; }
     
     [JsonPropertyName("created_at")]
-    public DateTimeOffset CreatedAt { get; init; }
+    public long CreatedAt { get; init; }
     
     [JsonPropertyName("updated_at")]
-    public DateTimeOffset LastUpdatedAt { get; init; }
+    public long LastUpdatedAt { get; init; }
 }

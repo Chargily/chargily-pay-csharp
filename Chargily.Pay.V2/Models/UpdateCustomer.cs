@@ -1,11 +1,9 @@
-﻿using Chargily.Pay.V2.Models;
+﻿namespace Chargily.Pay.V2.Models;
 
-namespace Chargily.Pay.V2.Internal.Responses;
-
-
-internal record CustomerResponse :  BaseObjectResponse
+public sealed record UpdateCustomer
 {
-    public string Name { get; init; } = null!;
+    public string Id { get; init; }
+    public string? Name { get; init; }
     public string? Email { get; init; }
     public string? Phone { get; init; }
     public CustomerAddress? Address { get; init; }

@@ -1,6 +1,6 @@
 ﻿namespace Chargily.Pay.V2.Models;
 
-public sealed record PaymentLink
+internal record PaymentLink
 {
     public string Id { get; init; }
     public string Name { get; init; }
@@ -9,4 +9,9 @@ public sealed record PaymentLink
     public LocaleType Language { get; init; }
     public bool PassFeesToCustomer { get; init; }
     public List<object> Metadata { get; init; } = new();
+}
+
+internal sealed record PaymentLinkResponse : PaymentLink
+{
+    public Uri Url { get; init; }
 }

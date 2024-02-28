@@ -7,17 +7,17 @@ namespace Chargily.Pay.V2.Internal.Endpoints;
 internal partial interface IChargilyApi
 {
     [Post("/customers")]
-    Task<CustomerResponse> CreateCustomer([Body] CreateCustomerRequest request);
+    Task<CustomerApiResponse> CreateCustomer([Body] CreateCustomerRequest request);
 
     [Post("/customers/{id}")]
-    Task<CustomerResponse> UpdateCustomer([Query] string id, [Body] UpdateCustomerRequest request);
+    Task<CustomerApiResponse> UpdateCustomer([Query] string id, [Body] UpdateCustomerRequest request);
 
     [Get("/customers/{id}")]
-    Task<CustomerResponse> GetCustomer([Query] string id);
+    Task<CustomerApiResponse> GetCustomer([Query] string id);
 
     [Get("/customers")]
-    Task<PagedResponse<CustomerResponse>> GetCustomers();
+    Task<PagedApiResponse<CustomerApiResponse>> GetCustomers([Query("page")] int page = 1, [Query("per_page")] int pageSize = 100);
     
     [Delete("/customers/{id}")]
-    Task<CustomerResponse?> DeleteCustomer([Query] string id);
+    Task<CustomerApiResponse?> DeleteCustomer([Query] string id);
 }

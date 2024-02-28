@@ -13,5 +13,7 @@ public enum EntityType
     [JsonPropertyName("checkout")]
     Checkout,
     [JsonPropertyName("payment_link")]
-    PaymentLink
+    PaymentLink,
+    [JsonPropertyName("balance")]
+    Balance
 }

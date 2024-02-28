@@ -2,7 +2,7 @@
 
 namespace Chargily.Pay.V2.Internal.Responses;
 
-internal record WalletResponse
+internal record WalletApiResponse
 {
     public string Currency { get; init; }
     public decimal Balance { get; init; }

@@ -3,7 +3,7 @@ using Chargily.Pay.V2.Models;
 
 namespace Chargily.Pay.V2.Internal.Responses;
 
-internal record BaseObjectResponse
+internal record BaseObjectApiResponse
 {
     [JsonPropertyName("id")]
     public string Id { get; init; }

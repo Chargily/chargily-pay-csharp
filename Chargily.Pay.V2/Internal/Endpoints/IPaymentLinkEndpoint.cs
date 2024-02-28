@@ -7,17 +7,17 @@ namespace Chargily.Pay.V2.Internal.Endpoints;
 internal partial interface IChargilyApi
 {
     [Post("/payment-links")]
-    Task<PaymentLinkResponse> CreatePaymentLink([Body] CreatePaymentLinkRequest request);
+    Task<PaymentLinkApiApiResponse> CreatePaymentLink([Body] CreatePaymentLinkRequest request);
 
     [Post("/payment-links/{id}")]
-    Task<PaymentLinkResponse?> UpdatePaymentLink([Query] string id,[Body] UpdatePaymentLinkRequest request);
+    Task<PaymentLinkApiApiResponse?> UpdatePaymentLink([Query] string id,[Body] UpdatePaymentLinkRequest request);
 
     [Get("/payment-links/{id}")]
-    Task<PaymentLinkResponse> GetPaymentLink([Query] string id);
+    Task<PaymentLinkApiApiResponse> GetPaymentLink([Query] string id);
     [Get("/payment-links/{id}/items")]
-    Task<PagedResponse<ProductItemResponse>> GetPaymentLinkItems([Query] string id);
+    Task<PagedApiResponse<ProductItemApiResponse>> GetPaymentLinkItems([Query] string id,[Query("page")] int page = 1, [Query("per_page")] int pageSize = 100);
 
     [Get("/payment-links")]
-    Task<PagedResponse<PaymentLinkResponse>> GetPaymentLinks();
+    Task<PagedApiResponse<PaymentLinkApiApiResponse>> GetPaymentLinks([Query("page")] int page = 1, [Query("per_page")] int pageSize = 100);
     
 }

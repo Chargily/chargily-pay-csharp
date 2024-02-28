@@ -7,17 +7,17 @@ namespace Chargily.Pay.V2.Internal.Endpoints;
 internal partial interface IChargilyApi
 {
     [Post("/checkouts")]
-    Task<CheckoutResponse> CreateCheckout([Body] CreateCheckoutRequest request);
+    Task<CheckoutApiApiResponse> CreateCheckout([Body] CreateCheckoutRequest request);
 
     [Post("/checkouts/{id}/expire")]
-    Task<CheckoutResponse?> CancelCheckout([Query] string id);
+    Task<CheckoutApiApiResponse?> CancelCheckout([Query] string id);
 
     [Get("/checkouts/{id}")]
-    Task<CheckoutResponse> GetCheckout([Query] string id);
+    Task<CheckoutApiApiResponse> GetCheckout([Query] string id);
     [Get("/checkouts/{id}/items")]
-    Task<PagedResponse<ProductItemResponse>> GetCheckoutItems([Query] string id);
+    Task<PagedApiResponse<ProductItemApiResponse>> GetCheckoutItems([Query] string id, [Query("page")] int page = 1, [Query("per_page")] int pageSize = 100);
 
     [Get("/checkouts")]
-    Task<PagedResponse<CustomerResponse>> GetCheckouts();
+    Task<PagedApiResponse<CustomerApiResponse>> GetCheckouts([Query("page")] int page = 1, [Query("per_page")] int pageSize = 100);
     
 }

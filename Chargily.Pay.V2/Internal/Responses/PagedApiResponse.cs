@@ -1,8 +1,9 @@
 ﻿using System.Text.Json.Serialization;
+using System.Web;
 
 namespace Chargily.Pay.V2.Internal.Responses;
 
-internal record PagedResponse<TData> where TData : BaseObjectResponse
+internal record PagedApiResponse<TData> where TData : BaseObjectApiResponse
 {
     public List<TData> Data { get; init; } = [];
     public int Total { get; init; }
@@ -17,4 +18,11 @@ internal record PagedResponse<TData> where TData : BaseObjectResponse
     [JsonPropertyName("current_page")] public int CurrentPage { get; init; }
     [JsonPropertyName("last_page")] public int LastPage { get; init; }
     [JsonPropertyName("per_page")] public int PageSize { get; init; }
+
+    internal int? GetNextPage()
+    {
+        return Uri.TryCreate(NextPageUrl, UriKind.Absolute, out var url)
+                   ? url.GetPage()!
+                   : null;
+    }
 }

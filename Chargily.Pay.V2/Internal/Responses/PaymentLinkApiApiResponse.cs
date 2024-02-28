@@ -2,7 +2,7 @@
 
 namespace Chargily.Pay.V2.Internal.Responses;
 
-internal record PaymentLinkResponse : BaseObjectResponse
+internal record PaymentLinkApiApiResponse : BaseObjectApiResponse
 {
     public string Name { get; init; }
     [JsonPropertyName("active")] public bool IsActive { get; init; }

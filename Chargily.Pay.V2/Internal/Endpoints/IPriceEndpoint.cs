@@ -7,15 +7,15 @@ namespace Chargily.Pay.V2.Internal.Endpoints;
 internal partial interface IChargilyApi
 {
     [Post("/prices")]
-    Task<PriceResponse> CreatePrice([Body] CreatePriceRequest request);
+    Task<PriceApiResponse> CreatePrice([Body] CreatePriceRequest request);
 
     [Post("/prices/{id}")]
-    Task<PriceResponse> UpdatePrice([Query] string id, [Body] UpdatePriceRequest request);
+    Task<PriceApiResponse> UpdatePrice([Query] string id, [Body] UpdatePriceRequest request);
 
     [Get("/prices/{id}")]
-    Task<PriceResponse> GetPrice([Query] string id);
+    Task<PriceApiResponse> GetPrice([Query] string id);
 
     [Get("/prices")]
-    Task<PagedResponse<PriceResponse>> GetPrices();
+    Task<PagedApiResponse<PriceApiResponse>> GetPrices([Query("page")] int page = 1, [Query("per_page")] int pageSize = 100);
     
 }

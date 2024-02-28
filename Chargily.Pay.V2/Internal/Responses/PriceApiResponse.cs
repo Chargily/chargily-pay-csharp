@@ -2,7 +2,7 @@
 
 namespace Chargily.Pay.V2.Internal.Responses;
 
-internal record PriceResponse : BaseObjectResponse
+internal record PriceApiResponse : BaseObjectApiResponse
 {
     public decimal Amount { get; init; }
     public string Currency { get; init; } = null!;

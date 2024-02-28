@@ -9,5 +9,5 @@ internal record BalanceResponse
 
     [JsonPropertyName("livemode")] public bool IsLiveMode { get; init; }
 
-    public WalletResponse[] Wallets { get; init; }
+    public WalletApiResponse[] Wallets { get; init; }
 }

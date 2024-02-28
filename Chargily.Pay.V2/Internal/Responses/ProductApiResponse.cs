@@ -1,6 +1,6 @@
 ﻿namespace Chargily.Pay.V2.Internal.Responses;
 
-internal record ProductResponse : BaseObjectResponse
+internal record ProductApiResponse : BaseObjectApiResponse
 {
     public string Name { get; init; }
     public string? Description { get; init; }

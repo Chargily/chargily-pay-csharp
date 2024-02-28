@@ -3,7 +3,7 @@
 namespace Chargily.Pay.V2.Internal.Responses;
 
 
-internal record CustomerResponse :  BaseObjectResponse
+internal record CustomerApiResponse :  BaseObjectApiResponse
 {
     public string Name { get; init; } = null!;
     public string? Email { get; init; }

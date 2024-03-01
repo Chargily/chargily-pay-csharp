@@ -15,5 +15,7 @@ public enum EntityType
     [JsonPropertyName("payment_link")]
     PaymentLink,
     [JsonPropertyName("balance")]
-    Balance
+    Balance,
+    PaymentLinkItem,
+    CheckoutItem
 }

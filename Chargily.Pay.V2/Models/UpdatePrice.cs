@@ -6,4 +6,5 @@ internal sealed record UpdatePrice
     public decimal? Amount { get; init; }
     public Currency? Currency { get; init; }
     public List<object>? Metadata { get; init; }
+    public string ProductId { get; init; }
 }

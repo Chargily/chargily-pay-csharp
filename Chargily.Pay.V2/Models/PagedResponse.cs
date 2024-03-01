@@ -1,4 +1,6 @@
-﻿namespace Chargily.Pay.V2.Models;
+﻿using Chargily.Pay.V2.Internal.Responses;
+
+namespace Chargily.Pay.V2.Models;
 
 public sealed record PagedResponse<T>
 {

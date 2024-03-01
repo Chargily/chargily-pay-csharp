@@ -12,7 +12,7 @@ internal sealed record UpdatePriceRequest
     public decimal? Amount { get; init; }
     public string? Currency { get; init; }
     [JsonPropertyName("product_id")] public string? ProductId { get; init; }
-    public List<object> Metadata { get; init; } = new();
+    public List<object>? Metadata { get; init; } = new();
 }
 
 internal class UpdatePriceRequestValidator : AbstractValidator<UpdatePriceRequest>

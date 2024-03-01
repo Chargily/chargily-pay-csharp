@@ -2,11 +2,16 @@
 
 public sealed record Checkout
 {
+    internal Checkout()
+    {
+        
+    }
+    
     /// <summary>
     /// Checkout must provide either Checkout Items or Amount & Currency
     /// </summary>
     /// <param name="checkoutItems">Checkout Items</param>
-    public Checkout(CheckoutItem[] checkoutItems)
+    public Checkout(List<CheckoutItem> checkoutItems)
     {
         Items = checkoutItems;
     }
@@ -21,10 +26,12 @@ public sealed record Checkout
         Amount = amount;
         Currency = currency;
     }
-    public CheckoutItem[]? Items { get; private set; }
-    public decimal? Amount { get; private set; }
-    public Currency? Currency { get; private set; }
+    public IReadOnlyList<CheckoutItem>? Items { get; internal set; }
+    public decimal? Amount { get; internal set; }
+    public Currency? Currency { get; internal set; }
     public Customer? Customer { get; init; }
+    public string? CustomerId { get; init; }
+
     public PaymentMethod PaymentMethod { get; init; }
     public Uri? OnSuccessRedirectUrl { get; init; }
     public Uri? OnFailureRedirectUrl { get; init; }

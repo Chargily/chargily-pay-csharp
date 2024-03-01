@@ -2,7 +2,7 @@
 
 namespace Chargily.Pay.V2.Internal.Responses;
 
-internal record ProductItemApiResponse : BaseObjectApiResponse
+internal record PaymentLinkItemApiResponse : BaseObjectApiResponse
 {
     [JsonPropertyName("product_id")] public string ProductId { get; init; }
     public decimal Amount { get; init; }

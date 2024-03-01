@@ -16,11 +16,11 @@ internal partial interface IChargilyApi
     Task<ProductApiResponse> GetProduct([Query("id")] string id);
 
     [Get("/products")]
-    Task<PagedApiResponse<ProductApiResponse>> GetProducts([Query("page")] int page = 1, [Query("per_page")] int pageSize = 100);
+    Task<PagedApiResponse<ProductApiResponse>> GetProducts([Query("page")] int page = 1, [Query("per_page")] int pageSize = 50);
 
     [Delete("/products/{id}")]
     Task<ProductApiResponse?> DeleteProduct([Query] string id);
 
     [Get("/products/{id}/prices")]
-    Task<PagedApiResponse<PriceApiResponse>> GetProductPrices([Query] string id, [Query("page")] int page = 1, [Query("per_page")] int pageSize = 100);
+    Task<PagedApiResponse<PriceApiResponse>> GetProductPrices([Query] string id, [Query("page")] int page = 1, [Query("per_page")] int pageSize = 50);
 }

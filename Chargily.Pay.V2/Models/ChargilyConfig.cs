@@ -12,4 +12,5 @@ public record ChargilyConfig
         = (attempt) => TimeSpan.FromMilliseconds(Math.Clamp(attempt * 500, 0, 30_000));
 
     internal TimeSpan GetCacheDuration() => EnableCache ? CacheDuration : TimeSpan.Zero;
+    public TimeSpan BalanceRefreshInterval { get; set; } = TimeSpan.FromSeconds(30);
 };

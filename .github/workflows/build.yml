@@ -1,0 +1,42 @@
+on:
+  push:
+    tags: [ 'v*.*.*' ]
+  release:
+    tags: [ 'v*.*.*' ]
+
+env:
+  DotnetVersion: 8
+  DOTNET_INSTALL_DIR: "./.dotnet"
+
+jobs:
+  build:
+    runs-on: self-hosted
+    env:
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      CHARGILY_SECRET_KEY: ${{ secrets.CHARGILY_SECRET_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set Version Env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DotnetVersion }}
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Compile
+        run: dotnet build -c Release --no-restore
+
+      - name: Compile Nuget Package
+        run: dotnet build ./Chargily.Pay.V2 -c Release --no-restore -p:Version=${{ env.RELEASE_VERSION }}
+
+      - name: Test
+        run: dotnet test -c Release --no-restore --no-build
+
+#      - name: Upload Nuget Package
+#        run: dotnet nuget push ./Chargily.Pay.V2/bin/Release/Chargily.Pay.V2.${{ env.RELEASE_VERSION }}.nupkg --skip-duplicate --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

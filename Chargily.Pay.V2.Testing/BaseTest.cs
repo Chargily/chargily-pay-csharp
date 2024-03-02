@@ -1,11 +1,10 @@
-using Chargily.Pay.V2;
 using Chargily.Pay.V2.Abstractions;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 
-namespace Chargily.V2.Testing;
+namespace Chargily.Pay.V2.Testing;
 
 public class BaseTest
 {
@@ -17,16 +16,20 @@ public class BaseTest
     var apiKey = "[API_SECRET_KEY]";
     Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Verbose)
-                .WriteTo.Console(theme: AnsiConsoleTheme.Code,
-                                 restrictedToMinimumLevel: LogEventLevel.Information)
+                .WriteTo.Console(theme: AnsiConsoleTheme.Code, restrictedToMinimumLevel: LogEventLevel.Debug)
+                .WriteTo.NUnitOutput(restrictedToMinimumLevel: LogEventLevel.Debug)
                 .CreateLogger();
 
     _chargilyPayClient = ChargilyPay.CreateResilientClient(config =>
                                                            {
-                                                             config.IsLiveMode = true;
+                                                             config.IsLiveMode = false;
                                                              config.ApiSecretKey = apiKey;
                                                            },
-                                                           log => log.AddSerilog());
+                                                           log =>
+                                                           {
+                                                             log.AddSerilog();
+                                                             log.SetMinimumLevel(LogLevel.Debug);
+                                                           });
   }
 
   [TearDown]

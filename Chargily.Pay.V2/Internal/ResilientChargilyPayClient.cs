@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Reactive.Linq;
-using System.Text.Json;
 using AutoMapper;
+using Chargily.Pay.V2.Abstractions;
 using Chargily.Pay.V2.Internal.Endpoints;
 using Chargily.Pay.V2.Internal.Requests;
 using Chargily.Pay.V2.Internal.Responses;
@@ -16,28 +16,69 @@ using Polly;
 using Polly.Retry;
 
 namespace Chargily.Pay.V2.Internal;
-
-internal class ResilientChargilyClient :  IDisposable
+/// <summary>
+/// <b>Chargily Pay V2</b> client with builtin <i>Caching + Retry on failure</i> 
+/// </summary>
+internal class ResilientChargilyPayClient : IChargilyPayClient
 {
-  private readonly IChargilyApi _chargilyApi;
+  private readonly IChargilyPayApi _chargilyPayApi;
   private readonly ServiceProvider _provider;
   private readonly IOptions<ChargilyConfig> _config;
   private readonly IMemoryCache _cache;
   private readonly ResiliencePipeline _retryPipeline;
-  private readonly ILogger<ResilientChargilyClient> _logger;
+  private readonly ILogger<ResilientChargilyPayClient> _logger;
   private readonly IMapper _mapper;
-
 
   private IDisposable _balanceObservable;
   private IDisposable _cacheObservable;
+  public void Dispose()
+  {
+    _balanceObservable.Dispose();
+    _cacheObservable.Dispose();
+    _provider.Dispose();
+    _cache.Dispose();
+  }
+  internal ResilientChargilyPayClient(IMemoryCache cache,
+                                   IMapper mapper,
+                                   ILogger<ResilientChargilyPayClient> logger,
+                                   IChargilyPayApi chargilyPayApi,
+                                   ServiceProvider provider,
+                                   IOptions<ChargilyConfig> config)
+  {
+    _mapper = mapper;
+    _logger = logger;
+    _cache = cache;
+    _config = config;
+    _chargilyPayApi = chargilyPayApi;
+    _provider = provider;
+
+    _retryPipeline = new ResiliencePipelineBuilder()
+                    .AddRetry(new RetryStrategyOptions()
+                              {
+                                DelayGenerator =
+                                  (attempt) => ValueTask.FromResult<TimeSpan?>(_config.Value.DelayPerRetryCalculator?.Invoke(attempt.AttemptNumber) ??
+                                                                               TimeSpan.FromMilliseconds(500 * attempt.AttemptNumber)),
+                                OnRetry = (ctx) =>
+                                          {
+                                            logger
+                                            ?.LogInformation("Failed, Attempt number: {@number}/{@max}, retrying after {seconds:N3} seconds.",
+                                                             ctx.AttemptNumber, _config.Value.MaxRetriesOnFailure, ctx.RetryDelay.TotalSeconds);
+                                            logger?.LogError("Failed with Exception: {@ex}",
+                                                             ctx.Outcome.Exception?.ToString());
+                                            return ValueTask.CompletedTask;
+                                          },
+                                MaxRetryAttempts = _config.Value.MaxRetriesOnFailure,
+                              })
+                    .Build();
+  }
+  
 
   private readonly ConcurrentDictionary<EntityType, List<CancellationTokenSource>> _cancellations =
     new ConcurrentDictionary<EntityType, List<CancellationTokenSource>>();
-  private event EventHandler<EntityType> OnDataStale;
+  private event Action<EntityType> OnDataStale;
   private void StartDataRefreshers()
   {
-    _cacheObservable = Observable.FromEventPattern<EntityType>(h => OnDataStale += h, h => OnDataStale -= h)
-                                 .Select(x => x.EventArgs)
+    _cacheObservable = Observable.FromEvent<EntityType>(h => OnDataStale += h, h => OnDataStale -= h)
                                  .Buffer(TimeSpan.FromSeconds(5))
                                  .Select(list => list.Distinct())
                                  .Do(list =>
@@ -73,39 +114,15 @@ internal class ResilientChargilyClient :  IDisposable
 
   private IValidator<T> GetValidator<T>() => _provider.GetRequiredService<IValidator<T>>();
 
-  internal ResilientChargilyClient(IMemoryCache cache,
-                                   IMapper mapper,
-                                   ILogger<ResilientChargilyClient> logger,
-                                   IChargilyApi chargilyApi,
-                                   ServiceProvider provider,
-                                   IOptions<ChargilyConfig> config)
+  private IChangeToken CreateCacheExpiration(EntityType entityType)
   {
-    _mapper = mapper;
-    _logger = logger;
-    _cache = cache;
-    _config = config;
-    _chargilyApi = chargilyApi;
-    _provider = provider;
-
-    _retryPipeline = new ResiliencePipelineBuilder()
-                    .AddRetry(new RetryStrategyOptions()
-                              {
-                                DelayGenerator =
-                                  (attempt) => ValueTask.FromResult<TimeSpan?>(_config.Value.DelayPerRetryCalculator?.Invoke(attempt.AttemptNumber) ??
-                                                                               TimeSpan.FromMilliseconds(500 * attempt.AttemptNumber)),
-                                OnRetry = (ctx) =>
-                                          {
-                                            logger
-                                            ?.LogInformation("Failed, Attempt number: {@number}/{@max}, retrying after {seconds:N3} seconds.",
-                                                             ctx.AttemptNumber, _config.Value.MaxRetriesOnFailure, ctx.RetryDelay.TotalSeconds);
-                                            logger?.LogError("Failed with Exception: {@ex}",
-                                                             ctx.Outcome.Exception?.ToString());
-                                            return ValueTask.CompletedTask;
-                                          },
-                                MaxRetryAttempts = _config.Value.MaxRetriesOnFailure,
-                              })
-                    .Build();
+    var cancellationTokenSource = new CancellationTokenSource();
+    var cancellation = new CancellationChangeToken(cancellationTokenSource.Token);
+    _cancellations[entityType].Add(cancellationTokenSource);
+    return cancellation;
   }
+
+
 
   private async Task<List<T>> ExhaustAllPages<T>(Func<int, Task<PagedApiResponse<T>>> fetchFunction)
     where T : BaseObjectApiResponse
@@ -136,7 +153,7 @@ internal class ResilientChargilyClient :  IDisposable
                                                               _config.Value.GetCacheDuration();
                                                             _logger?.LogInformation("Refreshing Account Balance...");
                                                             var response = await _retryPipeline.ExecuteAsync(async (_) =>
-                                                                             await _chargilyApi.GetBalance());
+                                                                             await _chargilyPayApi.GetBalance());
                                                             var wallets = _mapper.Map<IReadOnlyList<Wallet>>(response);
                                                             _logger?.LogDebug("Fetched Balance:\n{}", wallets.Stringify());
                                                             BalanceRefreshedAt = DateTimeOffset.Now;
@@ -159,9 +176,10 @@ internal class ResilientChargilyClient :  IDisposable
 
     _logger?.LogInformation("Creating a new Product... {@name}", product.Name);
     _logger?.LogDebug("Creating a new Product...\n{@request}", request.Stringify());
-    var response = await _chargilyApi.CreateProduct(request);
+    var response = await _chargilyPayApi.CreateProduct(request);
     var result = _mapper.Map<Response<Product>>(response);
     _logger?.LogDebug("Product created:\n{@response}", result.Stringify());
+    OnDataStale.Invoke(EntityType.Product);
     return result;
   }
 
@@ -175,9 +193,10 @@ internal class ResilientChargilyClient :  IDisposable
 
     _logger?.LogInformation("Update Product of id: {@}...", request.Id);
     _logger?.LogDebug("Update Product of id: {@} with:\n{@request}", request.Id, request.Stringify(true));
-    var response = await _chargilyApi.UpdateProduct(request.Id, request);
+    var response = await _chargilyPayApi.UpdateProduct(request.Id, request);
     var result = _mapper.Map<Response<Product>>(response);
     _logger?.LogDebug("Product updated:\n{@response}", result.Stringify());
+    OnDataStale.Invoke(EntityType.Product);
     return result;
   }
 
@@ -191,11 +210,13 @@ internal class ResilientChargilyClient :  IDisposable
                                                          _logger
                                                          ?.LogInformation("Fetching Product of id: {@id}...", id);
                                                          var response = await _retryPipeline.ExecuteAsync(async (_) =>
-                                                                                                            await _chargilyApi.GetProduct(id));
+                                                                                                            await _chargilyPayApi.GetProduct(id));
                                                          var items = await GetProductItems(id);
                                                          var result = _mapper.Map<Response<Product>>((response, items));
                                                          _logger?.LogDebug("Fetched Product:\n{}",
                                                                            result.Stringify());
+
+                                                         cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Product));
                                                          return result;
                                                        });
   }
@@ -212,7 +233,7 @@ internal class ResilientChargilyClient :  IDisposable
                                                         ?.LogInformation("Fetching Products. Page: {@pageNumber}, Page Size: {@pageSize}",
                                                                          page, pageSize);
                                                         var response = await _retryPipeline.ExecuteAsync(async (_) =>
-                                                                                                           await _chargilyApi.GetProducts(page, pageSize));
+                                                                                                           await _chargilyPayApi.GetProducts(page, pageSize));
                                                         var products = new List<Product>();
                                                         foreach (var item in response.Data)
                                                         {
@@ -225,6 +246,7 @@ internal class ResilientChargilyClient :  IDisposable
 
                                                         var result = _mapper.Map<PagedResponse<Product>>((response, products));
                                                         _logger?.LogDebug("Fetched Products:\n{}", result.Stringify());
+                                                        cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Product));
                                                         return result;
                                                       })!;
   }
@@ -238,9 +260,11 @@ internal class ResilientChargilyClient :  IDisposable
                                                      cacheEntry.AbsoluteExpirationRelativeToNow =
                                                        _config.Value.GetCacheDuration();
                                                      _logger?.LogInformation("Fetching Prices of Product with id: {@id}...", productId);
-                                                     var response = await ExhaustAllPages((p) => _chargilyApi.GetProductPrices(productId, p));
+                                                     var response = await ExhaustAllPages((p) => _chargilyPayApi.GetProductPrices(productId, p));
                                                      var result = _mapper.Map<List<ProductPrice>>(response);
                                                      _logger?.LogDebug("Fetched {@count} Prices.", result.Count);
+                                                     cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Product));
+                                                     cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Price));
                                                      return result;
                                                    })!;
   }
@@ -254,7 +278,7 @@ internal class ResilientChargilyClient :  IDisposable
                                               cacheEntry.AbsoluteExpirationRelativeToNow =
                                                 _config.Value.GetCacheDuration();
                                               _logger?.LogInformation("Fetching Prices of Product with id: {@id}...", productId);
-                                              var response = await ExhaustAllPages((p) => _chargilyApi.GetProductPrices(productId, p));
+                                              var response = await ExhaustAllPages((p) => _chargilyPayApi.GetProductPrices(productId, p));
                                               var result = new List<Price>();
                                               foreach (var item in result)
                                               {
@@ -296,9 +320,10 @@ internal class ResilientChargilyClient :  IDisposable
 
     _logger?.LogInformation("Creating a new Customer... {@name}", customer.Name);
     _logger?.LogDebug("Creating a new Customer...\n{@request}", request.Stringify());
-    var response = await _chargilyApi.CreateCustomer(request);
+    var response = await _chargilyPayApi.CreateCustomer(request);
     var result = _mapper.Map<Response<Customer>>(response);
     _logger?.LogDebug("Customer created:\n{@response}", result.Stringify());
+    OnDataStale.Invoke(EntityType.Customer);
     return result;
   }
 
@@ -312,9 +337,10 @@ internal class ResilientChargilyClient :  IDisposable
 
     _logger?.LogInformation("Update Customer of id: {@}...", request.Id);
     _logger?.LogDebug("Update Customer of id: {@} with:\n{@request}", request.Id, request.Stringify(true));
-    var response = await _chargilyApi.UpdateCustomer(request.Id, request);
+    var response = await _chargilyPayApi.UpdateCustomer(request.Id, request);
     var result = _mapper.Map<Response<Customer>>(response);
     _logger?.LogDebug("Customer updated:\n{@response}", result.Stringify());
+    OnDataStale.Invoke(EntityType.Customer);
     return result;
   }
 
@@ -330,7 +356,7 @@ internal class ResilientChargilyClient :  IDisposable
                                                          ?.LogInformation("Fetching Customers. Page: {@pageNumber}, Page Size: {@pageSize}",
                                                                           page, pageSize);
                                                          var response = await _retryPipeline.ExecuteAsync(async (_) =>
-                                                                                                                await _chargilyApi
+                                                                                                                await _chargilyPayApi
                                                                                                                  .GetCustomers(page, pageSize));
                                                          var result = _mapper.Map<PagedResponse<Customer>>(response);
                                                          foreach (var item in result.Data)
@@ -340,6 +366,7 @@ internal class ResilientChargilyClient :  IDisposable
                                                          }
 
                                                          _logger?.LogDebug("Fetched Customers:\n{}", result.Stringify());
+                                                         cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Customer));
                                                          return result;
                                                        })!;
   }
@@ -356,10 +383,10 @@ internal class ResilientChargilyClient :  IDisposable
                                                                            id);
                                                           var response =
                                                             await _retryPipeline.ExecuteAsync(async (_) =>
-                                                                                                await _chargilyApi.GetCustomer(id));
+                                                                                                await _chargilyPayApi.GetCustomer(id));
                                                           var result = _mapper.Map<Response<Customer>>(response);
-                                                          _logger?.LogDebug("Fetched Customer:\n{}",
-                                                                            result.Stringify());
+                                                          _logger?.LogDebug("Fetched Customer:\n{}", result.Stringify());
+                                                          cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Customer));
                                                           return result;
                                                         });
   }
@@ -389,11 +416,12 @@ internal class ResilientChargilyClient :  IDisposable
 
     _logger?.LogInformation("Creating a new Payment-link...");
     _logger?.LogDebug("Creating a new Payment-link...\n{@request}", request.Stringify());
-    var response = await _chargilyApi.CreatePaymentLink(request);
+    var response = await _chargilyPayApi.CreatePaymentLink(request);
     var result = _mapper.Map<Response<PaymentLinkResponse>>(response);
     _logger?.LogInformation("Payment-link created, with id {@id} and url: {@url}",
                             result.Value.Id, result.Value.Url);
     _logger?.LogDebug("Payment-link created:\n{@response}", result.Stringify());
+    OnDataStale.Invoke(EntityType.PaymentLink);
     return result;
   }
 
@@ -407,9 +435,10 @@ internal class ResilientChargilyClient :  IDisposable
 
     _logger?.LogInformation("Update Payment-link of id: {@}...", request.Id);
     _logger?.LogDebug("Update Payment-link of id: {@} with:\n{@request}", request.Id, request.Stringify(true));
-    var response = await _chargilyApi.UpdatePaymentLink(request.Id, request);
+    var response = await _chargilyPayApi.UpdatePaymentLink(request.Id, request);
     var result = _mapper.Map<Response<PaymentLinkResponse>>(response);
     _logger?.LogDebug("Payment-link updated:\n{@response}", result.Stringify());
+    OnDataStale.Invoke(EntityType.PaymentLink);
     return result;
   }
 
@@ -423,7 +452,7 @@ internal class ResilientChargilyClient :  IDisposable
                                                                     _logger?.LogInformation("Fetching Payment Links. Page: {@pageNumber}, Page Size: {@pageSize}",
                                                                                             page, pageSize);
                                                                     var response = await _retryPipeline.ExecuteAsync(async (_) =>
-                                                                                     await _chargilyApi.GetPaymentLinks(page, pageSize));
+                                                                                     await _chargilyPayApi.GetPaymentLinks(page, pageSize));
                                                                     var paymentLinkItems = new List<PaymentLinkResponse>();
                                                                     foreach (var item in response.Data)
                                                                     {
@@ -434,8 +463,8 @@ internal class ResilientChargilyClient :  IDisposable
 
                                                                     var result = _mapper.Map<PagedResponse<PaymentLinkResponse>>((response, paymentLinkItems));
 
-                                                                    _logger?.LogDebug("Fetched Payment Links:\n{}",
-                                                                                      result.Stringify());
+                                                                    _logger?.LogDebug("Fetched Payment Links:\n{}", result.Stringify());
+                                                                    cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.PaymentLink));
                                                                     return result;
                                                                   })!;
   }
@@ -449,7 +478,7 @@ internal class ResilientChargilyClient :  IDisposable
                                                                _config.Value.GetCacheDuration();
                                                              _logger?.LogInformation("Fetching Payment-Link items of id: {@id}...", paymentLinkId);
                                                              var response = await ExhaustAllPages<PaymentLinkItemApiResponse>(p =>
-                                                                              _chargilyApi.GetPaymentLinkItems(paymentLinkId, p));
+                                                                              _chargilyPayApi.GetPaymentLinkItems(paymentLinkId, p));
                                                              var result = new List<PaymentLinkItem>();
                                                              foreach (var item in response)
                                                              {
@@ -458,6 +487,8 @@ internal class ResilientChargilyClient :  IDisposable
                                                              }
 
                                                              _logger?.LogInformation("Fetched {count} Payment-Link items.", result.Count);
+                                                             cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.PaymentLink));
+                                                             cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Product));
                                                              return result;
                                                            });
   }
@@ -485,11 +516,12 @@ internal class ResilientChargilyClient :  IDisposable
                                                          _logger?.LogInformation("Fetching Product of id: {@id}...",
                                                                                  id);
                                                          var response = await _retryPipeline.ExecuteAsync(async (_) =>
-                                                                                                            await _chargilyApi.GetPaymentLink(id));
-                                                         var items = await _chargilyApi.GetPaymentLinkItems(id);
+                                                                                                            await _chargilyPayApi.GetPaymentLink(id));
+                                                         var items = await _chargilyPayApi.GetPaymentLinkItems(id);
                                                          var result = _mapper.Map<Response<PaymentLinkResponse>>((response, items));
 
                                                          _logger?.LogDebug("Fetched Product:\n{}", result.Stringify());
+                                                         cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Product));
                                                          return result;
                                                        });
   }
@@ -508,20 +540,22 @@ internal class ResilientChargilyClient :  IDisposable
 
     _logger?.LogInformation("Creating a new Checkout...");
     _logger?.LogDebug("Creating a new Checkout...\n{@request}", request.Stringify());
-    var response = await _chargilyApi.CreateCheckout(request);
+    var response = await _chargilyPayApi.CreateCheckout(request);
     var result = _mapper.Map<Response<CheckoutResponse>>(response);
     _logger?.LogInformation("Checkout created, with invoice-id {@id} and checkout-url: {@url}",
                             result.Value.InvoiceId, result.Value.CheckoutUrl);
     _logger?.LogDebug("Checkout created:\n{@response}", result.Stringify());
+    OnDataStale.Invoke(EntityType.Checkout);
     return result;
   }
 
   public async Task<CheckoutResponse?> CancelCheckout(string checkoutId)
   {
     _logger?.LogInformation("Cancelling checkout of id {@id}...", checkoutId);
-    var response = await _chargilyApi.CancelCheckout(checkoutId);
+    var response = await _chargilyPayApi.CancelCheckout(checkoutId);
     if (response is null) return null;
     _logger?.LogInformation("Cancelled checkout of id {id}", response.InvoiceId);
+    OnDataStale.Invoke(EntityType.Checkout);
     return _mapper.Map<CheckoutResponse>(response);
   }
 
@@ -538,14 +572,14 @@ internal class ResilientChargilyClient :  IDisposable
                                                                                   page, pageSize);
                                                                  var response =
                                                                    await _retryPipeline.ExecuteAsync(async (_) =>
-                                                                                                       await _chargilyApi.GetCheckouts(page, pageSize));
+                                                                                                       await _chargilyPayApi.GetCheckouts(page, pageSize));
 
                                                                  var dataItems = new List<CheckoutResponse>();
                                                                  foreach (var checkoutResponseItem in response.Data)
                                                                  {
                                                                    var checkoutItems =
                                                                      await ExhaustAllPages<CheckoutItemApiResponse>(p =>
-                                                                       _chargilyApi.GetCheckoutItems(checkoutResponseItem.Id, p));
+                                                                       _chargilyPayApi.GetCheckoutItems(checkoutResponseItem.Id, p));
                                                                    var customer = await GetCustomer(checkoutResponseItem.CustomerId);
                                                                    var paymentLink = await GetPaymentLink(checkoutResponseItem.PaymentLinkId);
 
@@ -565,8 +599,11 @@ internal class ResilientChargilyClient :  IDisposable
 
                                                                  var result = _mapper.Map<PagedResponse<CheckoutResponse>>((response, dataItems));
 
-                                                                 _logger?.LogDebug("Fetched Checkout Invoices:\n{}",
-                                                                                   result.Stringify());
+                                                                 _logger?.LogDebug("Fetched Checkout Invoices:\n{}", result.Stringify());
+                                                                 cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Checkout));
+                                                                 cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Customer));
+                                                                 cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Product));
+                                                                 cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Price));
                                                                  return result;
                                                                })!;
   }
@@ -580,7 +617,7 @@ internal class ResilientChargilyClient :  IDisposable
                                                             _config.Value.GetCacheDuration();
                                                           _logger?.LogInformation("Fetching Checkout items of id: {@id}...", checkoutId);
                                                           var response =
-                                                            await ExhaustAllPages<CheckoutItemApiResponse>(p => _chargilyApi.GetCheckoutItems(checkoutId, p));
+                                                            await ExhaustAllPages<CheckoutItemApiResponse>(p => _chargilyPayApi.GetCheckoutItems(checkoutId, p));
                                                           var result = new List<CheckoutItem>();
                                                           foreach (var item in response)
                                                           {
@@ -589,6 +626,9 @@ internal class ResilientChargilyClient :  IDisposable
                                                           }
 
                                                           _logger?.LogInformation("Fetched {count} Checkout items.", result.Count);
+                                                          cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Checkout));
+                                                          cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Product));
+                                                          cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Price));
                                                           return result;
                                                         });
   }
@@ -601,13 +641,16 @@ internal class ResilientChargilyClient :  IDisposable
                                                                   cacheEntry.AbsoluteExpirationRelativeToNow = _config.Value.GetCacheDuration();
                                                                   _logger?.LogInformation("Fetching Checkout of id: {@id}...", id);
                                                                   var response =
-                                                                    await _retryPipeline.ExecuteAsync(async (_) => await _chargilyApi.GetCheckout(id));
+                                                                    await _retryPipeline.ExecuteAsync(async (_) => await _chargilyPayApi.GetCheckout(id));
                                                                   var customer = GetCustomer(response.CustomerId);
                                                                   var paymentLink = await GetPaymentLink(response.PaymentLinkId);
                                                                   var items = await GetCheckoutItems(id);
                                                                   var result =
                                                                     _mapper.Map<Response<CheckoutResponse>>((response, items, customer, paymentLink));
                                                                   _logger?.LogDebug("Fetched Checkout:\n{@data}", result.Stringify());
+                                                                  cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Checkout));
+                                                                  cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Product));
+                                                                  cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Customer));
                                                                   return result;
                                                                 });
   }
@@ -637,10 +680,11 @@ internal class ResilientChargilyClient :  IDisposable
 
     _logger?.LogInformation("Creating a new Price...");
     _logger?.LogDebug("Creating a new Price...\n{@request}", request.Stringify());
-    var response = await _chargilyApi.CreatePrice(request);
+    var response = await _chargilyPayApi.CreatePrice(request);
     var product = await GetProduct(response.ProductId);
     var result = _mapper.Map<Response<Price>>((response, product));
     _logger?.LogDebug("Price created:\n{@response}", result.Stringify());
+    OnDataStale.Invoke(EntityType.Price);
     return result;
   }
 
@@ -654,10 +698,11 @@ internal class ResilientChargilyClient :  IDisposable
 
     _logger?.LogInformation("Update Price of id: {@}...", request.Id);
     _logger?.LogDebug("Update Price of id: {@} with:\n{@request}", request.Id, request.Stringify(true));
-    var response = await _chargilyApi.UpdatePrice(request.Id, request);
+    var response = await _chargilyPayApi.UpdatePrice(request.Id, request);
     var product = await GetProduct(response.ProductId);
     var result = _mapper.Map<Response<Price>>((response, product));
     _logger?.LogDebug("Price updated:\n{@response}", result.Stringify());
+    OnDataStale.Invoke(EntityType.Price);
     return result;
   }
 
@@ -671,7 +716,7 @@ internal class ResilientChargilyClient :  IDisposable
                                                       _logger?.LogInformation("Fetching Prices. Page: {@pageNumber}, Page Size: {@pageSize}...",
                                                                               page, pageSize);
                                                       var response =
-                                                        await _retryPipeline.ExecuteAsync(async (_) => await _chargilyApi.GetPrices(page, pageSize));
+                                                        await _retryPipeline.ExecuteAsync(async (_) => await _chargilyPayApi.GetPrices(page, pageSize));
                                                       var prices = new List<Price>();
                                                       foreach (var item in response.Data)
                                                       {
@@ -682,6 +727,8 @@ internal class ResilientChargilyClient :  IDisposable
 
                                                       var result = _mapper.Map<PagedResponse<Price>>((response, prices));
                                                       _logger?.LogDebug("Fetched Prices:\n{}", result.Stringify());
+                                                      cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Product));
+                                                      cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Price));
                                                       return result;
                                                     })!;
   }
@@ -704,19 +751,17 @@ internal class ResilientChargilyClient :  IDisposable
                                                      {
                                                        cacheEntry.AbsoluteExpirationRelativeToNow = _config.Value.GetCacheDuration();
                                                        _logger?.LogInformation("Fetching Price of id: {@id}...", id);
-                                                       var response = await _retryPipeline.ExecuteAsync(async (_) => await _chargilyApi.GetPrice(id));
+                                                       var response = await _retryPipeline.ExecuteAsync(async (_) => await _chargilyPayApi.GetPrice(id));
                                                        var product = await GetProduct(response.ProductId);
                                                        var result = _mapper.Map<Response<Price>>((response, product));
                                                        _logger?.LogDebug("Fetched Price:\n{@data}", result.Stringify());
+                                                       cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Product));
+                                                       cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Price));
                                                        return result;
                                                      });
   }
 
 #endregion
 
-  public void Dispose()
-  {
-    _provider.Dispose();
-    _cache.Dispose();
-  }
+
 }

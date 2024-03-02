@@ -6,13 +6,41 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <RootNamespace>Chargily.Pay.V2</RootNamespace>
+        
+        <PackageIcon>chargily.png</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <OutputType>Library</OutputType>
+        <Version>1.0.0-alpha</Version>
+        <Authors>Chargily</Authors>
+        <Description>Chargily Pay V2 C# .NET Client</Description>
+        <Copyright>© 2024 Chargily</Copyright>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageProjectUrl>https://dev.chargily.com</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Chargily/chargily-pay-csharp</RepositoryUrl>
+        <RepositoryType>github</RepositoryType>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageTags>chargily;ccp;poste;algerieposte;epay;gateway;payment;edahabia;cib;ecommerce;satim;onlinepayment</PackageTags>
+        <Product>Chargily.Pay.V2</Product>
+        <PackageId>Chargily.Pay.V2</PackageId>
+
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
+        <None Include="..\Assets\chargily.png" Pack="true" PackagePath="\" />
+        <None Include="..\README.md" Pack="true" PackagePath="\" />
+        <None Include="..\LICENSE" Pack="true" PackagePath="\" />
+    </ItemGroup>
+    
+    <ItemGroup>
       <PackageReference Include="AutoMapper" Version="13.0.1" />
       <PackageReference Include="FluentValidation" Version="11.9.0" />
+      <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.0" />
       <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
       <PackageReference Include="Polly" Version="8.3.0" />
       <PackageReference Include="Refit" Version="7.0.0" />
       <PackageReference Include="Refit.HttpClientFactory" Version="7.0.0" />

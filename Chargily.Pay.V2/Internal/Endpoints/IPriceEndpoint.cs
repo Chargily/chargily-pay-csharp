@@ -4,7 +4,7 @@ using Refit;
 
 namespace Chargily.Pay.V2.Internal.Endpoints;
 
-internal partial interface IChargilyApi
+internal partial interface IChargilyPayApi
 {
     [Post("/prices")]
     Task<PriceApiResponse> CreatePrice([Body] CreatePriceRequest request);

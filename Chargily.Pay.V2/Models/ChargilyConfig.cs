@@ -13,4 +13,5 @@ public record ChargilyConfig
 
     internal TimeSpan GetCacheDuration() => EnableCache ? CacheDuration : TimeSpan.Zero;
     public TimeSpan BalanceRefreshInterval { get; set; } = TimeSpan.FromSeconds(30);
+    public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(120);
 };

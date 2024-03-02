@@ -4,7 +4,7 @@ using Refit;
 
 namespace Chargily.Pay.V2.Internal.Endpoints;
 
-internal partial interface IChargilyApi
+internal partial interface IChargilyPayApi
 {
     [Post("/payment-links")]
     Task<PaymentLinkApiResponse> CreatePaymentLink([Body] CreatePaymentLinkRequest request);

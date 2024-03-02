@@ -1,6 +1,6 @@
 ﻿namespace Chargily.Pay.V2.Models;
 
-internal sealed record UpdatePrice
+public sealed record UpdatePrice
 {
     public string Id { get; init; }
     public decimal? Amount { get; init; }

@@ -13,7 +13,7 @@ public class BaseTest
   [SetUp]
   public void Setup()
   {
-    var apiKey = "[API_SECRET_KEY]";
+    var apiKey = Environment.GetEnvironmentVariable("CHARGILY_SECRET_KEY");
     Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Verbose)
                 .WriteTo.Console(theme: AnsiConsoleTheme.Code, restrictedToMinimumLevel: LogEventLevel.Debug)

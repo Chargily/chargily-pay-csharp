@@ -1,8 +1,8 @@
 on:
   push:
-    tags: [ 'v*.*.*', 'v*.*.*-alpha','v*.*.*-beta' ]
+    tags: [ '*.*.*', '*.*.*-alpha','*.*.*-beta' ]
   release:
-    tags: [ 'v*.*.*', 'v*.*.*-alpha','v*.*.*-beta' ]
+    tags: [ '*.*.*', '*.*.*-alpha','*.*.*-beta' ]
 
 env:
   DotnetVersion: 8

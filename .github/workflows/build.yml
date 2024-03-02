@@ -10,7 +10,7 @@ env:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     env:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
       CHARGILY_SECRET_KEY: ${{ secrets.CHARGILY_SECRET_KEY }}

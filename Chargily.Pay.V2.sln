@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chargily.Pay.V2", "Chargily.Pay.V2\Chargily.Pay.V2.csproj", "{3EE2608B-8050-4310-986B-9E8AEA8110D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chargily.V2.Testing", "Chargily.V2.Testing\Chargily.V2.Testing.csproj", "{53EBA11E-23F6-4E9A-95EA-FFDCF8EB7B21}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chargily.Pay.V2.Testing", "Chargily.Pay.V2.Testing\Chargily.Pay.V2.Testing.csproj", "{53EBA11E-23F6-4E9A-95EA-FFDCF8EB7B21}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

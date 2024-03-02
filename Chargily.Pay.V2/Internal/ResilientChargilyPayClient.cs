@@ -21,6 +21,8 @@ namespace Chargily.Pay.V2.Internal;
 /// </summary>
 internal class ResilientChargilyPayClient : IChargilyPayClient
 {
+  internal event Action OnDisposing;
+  
   private readonly IChargilyPayApi _chargilyPayApi;
   private readonly IServiceProvider _provider;
   private readonly IOptions<ChargilyConfig> _config;
@@ -33,9 +35,10 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
   private IDisposable _cacheObservable;
   public void Dispose()
   {
-    _balanceObservable.Dispose();
-    _cacheObservable.Dispose();
-    _cache.Dispose();
+    _balanceObservable?.Dispose();
+    _cacheObservable?.Dispose();
+    _cache?.Dispose();
+    OnDisposing?.Invoke();
   }
   public ResilientChargilyPayClient(IMemoryCache cache,
                                    IMapper mapper,
@@ -159,7 +162,7 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                             var response = await _retryPipeline.ExecuteAsync(async (_) =>
                                                                              await _chargilyPayApi.GetBalance());
                                                             var wallets = _mapper.Map<IReadOnlyList<Wallet>>(response);
-                                                            _logger?.LogDebug("Fetched Balance:\n{}", wallets.Stringify());
+                                                            _logger?.LogDebug("Fetched Balance:\n{@balance}", wallets.Stringify());
                                                             BalanceRefreshedAt = DateTimeOffset.Now;
                                                             Balance = wallets;
                                                             return wallets;

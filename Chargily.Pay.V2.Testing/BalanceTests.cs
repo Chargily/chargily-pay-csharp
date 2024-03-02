@@ -1,4 +1,4 @@
-﻿namespace Chargily.V2.Testing;
+﻿namespace Chargily.Pay.V2.Testing;
 
 public class BalanceTests : BaseTest
 {
@@ -9,6 +9,8 @@ public class BalanceTests : BaseTest
                     {
                       Assert.DoesNotThrowAsync(() => _chargilyPayClient.GetBalance());
                       Assert.That(_chargilyPayClient.Balance, Is.Not.Null);
+                      Assert.That(_chargilyPayClient.Balance, Is.Not.Count.Zero);
+                      Assert.That(_chargilyPayClient.BalanceRefreshedAt, Is.Not.Null);
                     });
   }
 }

@@ -1,4 +1,5 @@
-﻿using Chargily.Pay.V2.Abstractions;
+﻿using System.Net.Http.Headers;
+using Chargily.Pay.V2.Abstractions;
 using Chargily.Pay.V2.Exceptions;
 using Chargily.Pay.V2.Internal;
 using Chargily.Pay.V2.Internal.Endpoints;
@@ -30,7 +31,6 @@ public static class ChargilyPay
                                        logConfig.AddDebug();
                                        logConfig.SetMinimumLevel(config.IsLiveMode ? LogLevel.Information : LogLevel.Debug);
                                        configureLogging?.Invoke(logConfig);
-
                                      })
                          .AddHttpClient()
                          .AddRefitClient<IChargilyPayApi>(provider =>
@@ -38,10 +38,11 @@ public static class ChargilyPay
                                                             var logger = provider.GetRequiredService<ILogger<IChargilyPayClient>>();
                                                             return new RefitSettings()
                                                                    {
-                                                                     AuthorizationHeaderValueGetter =
-                                                                       (_, _) => Task.FromResult($"Bearer {config.ApiSecretKey}"),
+                                                                     // AuthorizationHeaderValueGetter =
+                                                                     //   (_, _) => { return Task.FromResult($"Bearer {config.ApiSecretKey}"); },
                                                                      ExceptionFactory = async (message) =>
                                                                                         {
+                                                                                          if (message.IsSuccessStatusCode) return null;
                                                                                           var response = await message.Content.ReadAsStringAsync();
                                                                                           return new ChargilyPayApiException((int)message.StatusCode, response);
                                                                                         }
@@ -53,12 +54,14 @@ public static class ChargilyPay
                                                 client.BaseAddress = new Uri(config.IsLiveMode
                                                                                ? "https://pay.chargily.net/api/v2"
                                                                                : "https://pay.chargily.net/test/api/v2");
+                                                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",config.ApiSecretKey);
                                               })
                          .Services
                          .AddSingleton<IChargilyPayClient, ResilientChargilyPayClient>()
                          .AddSingleton<IWebhookValidator, ChargilyPayWebhookValidator>()
                          .BuildServiceProvider();
-
-    return serviceProvider.GetRequiredService<IChargilyPayClient>();
+    var client = serviceProvider.GetRequiredService<IChargilyPayClient>();
+    ((client as ResilientChargilyPayClient)!).OnDisposing += () => serviceProvider.Dispose();
+    return client;
   }
 }

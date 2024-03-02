@@ -22,7 +22,7 @@ namespace Chargily.Pay.V2.Internal;
 internal class ResilientChargilyPayClient : IChargilyPayClient
 {
   private readonly IChargilyPayApi _chargilyPayApi;
-  private readonly ServiceProvider _provider;
+  private readonly IServiceProvider _provider;
   private readonly IOptions<ChargilyConfig> _config;
   private readonly IMemoryCache _cache;
   private readonly ResiliencePipeline _retryPipeline;
@@ -35,14 +35,13 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
   {
     _balanceObservable.Dispose();
     _cacheObservable.Dispose();
-    _provider.Dispose();
     _cache.Dispose();
   }
-  internal ResilientChargilyPayClient(IMemoryCache cache,
+  public ResilientChargilyPayClient(IMemoryCache cache,
                                    IMapper mapper,
                                    ILogger<ResilientChargilyPayClient> logger,
                                    IChargilyPayApi chargilyPayApi,
-                                   ServiceProvider provider,
+                                   IServiceProvider provider,
                                    IOptions<ChargilyConfig> config)
   {
     _mapper = mapper;
@@ -51,6 +50,7 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
     _config = config;
     _chargilyPayApi = chargilyPayApi;
     _provider = provider;
+    WebhookValidator = _provider.GetRequiredService<IWebhookValidator>();
 
     _retryPipeline = new ResiliencePipelineBuilder()
                     .AddRetry(new RetryStrategyOptions()
@@ -140,7 +140,11 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
     return result;
   }
 
+  public IWebhookValidator WebhookValidator { get; }
+  public bool IsLiveMode => _config.Value.IsLiveMode;
+
 #region Balance
+
   public IReadOnlyList<Wallet> Balance { get; private set; }
   public DateTimeOffset? BalanceRefreshedAt { get; private set; }
 

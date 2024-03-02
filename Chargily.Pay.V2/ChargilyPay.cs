@@ -56,6 +56,7 @@ public static class ChargilyPay
                                               })
                          .Services
                          .AddSingleton<IChargilyPayClient, ResilientChargilyPayClient>()
+                         .AddSingleton<IWebhookValidator, ChargilyPayWebhookValidator>()
                          .BuildServiceProvider();
 
     return serviceProvider.GetRequiredService<IChargilyPayClient>();

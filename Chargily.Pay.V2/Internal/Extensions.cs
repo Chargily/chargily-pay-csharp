@@ -9,6 +9,7 @@ namespace Chargily.Pay.V2.Internal;
 
 public static class Extensions
 {
+    
     internal static int? GetPage(this Uri uri)
     {
         return Convert.ToInt32(HttpUtility

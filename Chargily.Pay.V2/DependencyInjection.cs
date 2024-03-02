@@ -24,7 +24,9 @@ public static class DependencyInjection
     if (services.Any(x => x.ServiceType == typeof(IChargilyPayClient)))
       throw new ChargilyPayClientAlreadyRegistered();
 
-    return services.AddSingleton<IChargilyPayClient>(ChargilyPay.CreateResilientClient(configure, configureLogging));
+    var client = ChargilyPay.CreateResilientClient(configure, configureLogging);
+    return services.AddSingleton<IChargilyPayClient>(client)
+                   .AddSingleton<IWebhookValidator>(client.WebhookValidator);
   }
 
   /// <summary>
@@ -51,6 +53,8 @@ public static class DependencyInjection
                           (string)x.ServiceKey! == config.ApiSecretKey))
       throw new ChargilyPayClientAlreadyRegistered(config.ApiSecretKey);
 
-    return services.AddKeyedSingleton<IChargilyPayClient>(config.ApiSecretKey, ChargilyPay.CreateResilientClient(configure, configureLogging));
+    var client = ChargilyPay.CreateResilientClient(configure, configureLogging);
+    return services.AddKeyedSingleton<IChargilyPayClient>(config.ApiSecretKey, client)
+                   .AddKeyedSingleton<IWebhookValidator>(config.ApiSecretKey, client.WebhookValidator);
   }
 }

@@ -4,6 +4,8 @@ namespace Chargily.Pay.V2.Abstractions;
 
 public interface IChargilyPayClient : IDisposable
 {
+  IWebhookValidator WebhookValidator { get; }
+  bool IsLiveMode { get; }
   IReadOnlyList<Wallet> Balance { get; }
   DateTimeOffset? BalanceRefreshedAt { get; }
   Task<IReadOnlyList<Wallet>?> GetBalance();

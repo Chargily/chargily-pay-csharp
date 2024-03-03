@@ -15,20 +15,17 @@ public class BaseTest
   [SetUp]
   public void Setup()
   {
-    
     var configuration = new ConfigurationBuilder()
-                       .AddEnvironmentVariables()
-                       .AddEnvironmentVariables("CHARGILY_SECRET_KEY")
+                       .AddUserSecrets<BaseTest>()
                        .Build();
 
     foreach (var env in configuration.AsEnumerable())
     {
       Console.WriteLine($"{env.Key}:{env.Value}");
     }
-    var apiSecret = IsWindows()
-                      ? Environment.GetEnvironmentVariable("CHARGILY_SECRET_KEY", EnvironmentVariableTarget.User)
-                      : configuration["CHARGILY_SECRET_KEY"]!;
-    
+
+    var apiSecret = configuration["CHARGILY_SECRET_KEY"]!;
+
     Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Verbose)
                 .WriteTo.Console(theme: AnsiConsoleTheme.Code, restrictedToMinimumLevel: LogEventLevel.Debug)
@@ -46,7 +43,7 @@ public class BaseTest
                                                              log.SetMinimumLevel(LogLevel.Debug);
                                                            });
   }
-  
+
 
   [TearDown]
   public void TearDown()

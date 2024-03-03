@@ -17,7 +17,7 @@ internal record CheckoutApiResponse : BaseObjectApiResponse
     [JsonPropertyName("pass_fees_to_customer")]
     public bool PassFeesToCustomer { get; init; }
 
-    public List<object>? Metadata { get; init; } = new();
+    public List<string>? Metadata { get; init; } = new();
 
     public string Status { get; init; }
     public decimal Fees { get; init; }

@@ -9,7 +9,7 @@ public class PriceProfile : Profile
 {
   public PriceProfile()
   {
-    CreateMap<Price, CreatePriceRequest>()
+    CreateMap<CreatePrice, CreatePriceRequest>()
      .ConstructUsing((req, ctx) => new CreatePriceRequest()
                                    {
                                      Metadata = req.Metadata,
@@ -32,8 +32,8 @@ public class PriceProfile : Profile
      .ConstructUsing((res, ctx) => new Response<Price>()
                                    {
                                      Id = res.Id,
-                                     CreatedAt = DateTimeOffset.FromUnixTimeMilliseconds(res.CreatedAt),
-                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeMilliseconds(res.LastUpdatedAt),
+                                     CreatedAt = DateTimeOffset.FromUnixTimeSeconds(res.CreatedAt),
+                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeSeconds(res.LastUpdatedAt),
                                      IsLiveMode = res.IsLiveMode,
                                      Value = new Price()
                                              {
@@ -65,13 +65,30 @@ public class PriceProfile : Profile
                                      ProductId = res.Price.ProductId,
                                      Product = res.Product
                                    });
+    
+    CreateMap< (PriceApiResponse Price, Response<Product> Product), Response<Price>>()
+     .ConstructUsing((res, ctx) => new Response<Price>()
+                                   {
+                                     Id = res.Price.Id,
+                                     CreatedAt = DateTimeOffset.FromUnixTimeSeconds(res.Price.CreatedAt),
+                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeSeconds(res.Price.LastUpdatedAt),
+                                     IsLiveMode = res.Price.IsLiveMode,
+                                     Value = new Price()
+                                             {
+                                               Metadata = res.Price.Metadata,
+                                               Amount = res.Price.Amount,
+                                               Currency = ctx.Mapper.Map<Currency>(res.Price.Currency),
+                                               ProductId = res.Price.ProductId,
+                                               Product = res.Product.Value
+                                             }
+                                   });
     CreateMap<PagedApiResponse<PriceApiResponse>, PagedResponse<Price>>()
      .ConstructUsing((res, ctx) => new PagedResponse<Price>()
                                    {
                                      Data = ctx.Mapper.Map<List<Price>>(res.Data),
                                      CurrentPage = res.CurrentPage,
                                      FirstPage = res.FirstPageUrl.GetPageOrDefault(1),
-                                     LastPage = res.LastPageUrl.GetPageOrDefault(1),
+                                     //LastPage = res.LastPageUrl.GetPageOrDefault(1),
                                      NextPage = res.NextPageUrl?.GetPage(),
                                      PreviousPage = res.NextPageUrl?.GetPage(),
                                      PageSize = res.PageSize,
@@ -84,7 +101,7 @@ public class PriceProfile : Profile
                                      Data = res.Prices,
                                      CurrentPage = res.Response.CurrentPage,
                                      FirstPage = res.Response.FirstPageUrl.GetPageOrDefault(1),
-                                     LastPage = res.Response.LastPageUrl.GetPageOrDefault(1),
+                                     //LastPage = res.Response.LastPageUrl.GetPageOrDefault(1),
                                      NextPage = res.Response.NextPageUrl?.GetPage(),
                                      PreviousPage = res.Response.NextPageUrl?.GetPage(),
                                      PageSize = res.Response.PageSize,

@@ -9,7 +9,7 @@ public class ProductProfile : Profile
 {
   public ProductProfile()
   {
-    CreateMap<Product, CreateProductRequest>()
+    CreateMap<CreateProduct, CreateProductRequest>()
      .ConstructUsing((req, ctx) => new CreateProductRequest()
                                    {
                                      ImagesUrls = req.ImagesUrls
@@ -36,14 +36,14 @@ public class ProductProfile : Profile
      .ConstructUsing((res, ctx) => new Response<Product>()
                                    {
                                      Id = res.Id,
-                                     CreatedAt = DateTimeOffset.FromUnixTimeMilliseconds(res.CreatedAt),
-                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeMilliseconds(res.LastUpdatedAt),
+                                     CreatedAt = DateTimeOffset.FromUnixTimeSeconds(res.CreatedAt),
+                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeSeconds(res.LastUpdatedAt),
                                      IsLiveMode = res.IsLiveMode,
                                      Value = new Product()
                                              {
                                                Id = res.Id,
                                                Description = res.Description,
-                                               ImagesUrls = res.ImagesUrls
+                                               ImagesUrls = res.ImagesUrls?
                                                                .Select(x => new Uri(x, UriKind.Absolute))
                                                                .ToList(),
                                                Metadata = res.Metadata,
@@ -57,7 +57,7 @@ public class ProductProfile : Profile
                                    {
                                      Id = res.Id,
                                      Description = res.Description,
-                                     ImagesUrls = res.ImagesUrls
+                                     ImagesUrls = res.ImagesUrls?
                                                      .Select(x => new Uri(x, UriKind.Absolute))
                                                      .ToList(),
                                      Metadata = res.Metadata,
@@ -69,14 +69,14 @@ public class ProductProfile : Profile
      .ConstructUsing((res, ctx) => new Response<Product>()
                                    {
                                      Id = res.Response.Id,
-                                     CreatedAt = DateTimeOffset.FromUnixTimeMilliseconds(res.Response.CreatedAt),
-                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeMilliseconds(res.Response.LastUpdatedAt),
+                                     CreatedAt = DateTimeOffset.FromUnixTimeSeconds(res.Response.CreatedAt),
+                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeSeconds(res.Response.LastUpdatedAt),
                                      IsLiveMode = res.Response.IsLiveMode,
                                      Value = new Product()
                                              {
                                                Id = res.Response.Id,
                                                Description = res.Response.Description,
-                                               ImagesUrls = res.Response.ImagesUrls
+                                               ImagesUrls = res.Response.ImagesUrls?
                                                                .Select(x => new Uri(x, UriKind.Absolute))
                                                                .ToList(),
                                                Metadata = res.Response.Metadata,
@@ -91,7 +91,7 @@ public class ProductProfile : Profile
                                      Data = res.Items,
                                      CurrentPage = res.Response.CurrentPage,
                                      FirstPage = res.Response.FirstPageUrl.GetPageOrDefault(1),
-                                     LastPage = res.Response.LastPageUrl.GetPageOrDefault(1),
+                                     //LastPage = res.Response.LastPageUrl.GetPageOrDefault(1),
                                      NextPage = res.Response.NextPageUrl?.GetPage(),
                                      PreviousPage = res.Response.NextPageUrl?.GetPage(),
                                      PageSize = res.Response.PageSize,

@@ -8,5 +8,5 @@ internal record CheckoutItemApiResponse : BaseObjectApiResponse
     public decimal Amount { get; init; }
     public string Currency { get; init; } = null!;
     public int Quantity { get; init; }
-    public List<object>? Metadata { get; init; } = new();
+    public List<string>? Metadata { get; init; } = new();
 }

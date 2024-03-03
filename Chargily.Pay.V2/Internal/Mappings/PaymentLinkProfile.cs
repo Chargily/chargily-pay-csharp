@@ -21,7 +21,7 @@ public class PaymentLinkProfile : Profile
                     { "en", LocaleType.English },
                     { "fr", LocaleType.French },
                   };
-    CreateMap<PaymentLink, CreatePaymentLinkRequest>()
+    CreateMap<CreatePaymentLink, CreatePaymentLinkRequest>()
      .ConstructUsing((req, ctx) => new CreatePaymentLinkRequest()
                                    {
                                      Metadata = req.Metadata,
@@ -43,29 +43,12 @@ public class PaymentLinkProfile : Profile
                                      Name = req.Name
                                    });
 
-    CreateMap<(CreateCheckoutRequest Request, List<CheckoutItem> Items, Customer? Customer, PaymentLink? PaymentLink), Checkout>()
-     .ConstructUsing((req, ctx) => new Checkout()
-                                   {
-                                     Metadata = req.Request.Metadata,
-                                     Currency = ctx.Mapper.Map<Currency>(req.Request.Currency),
-                                     Amount = req.Request.Amount,
-                                     CustomerId = req.Request.CustomerId,
-                                     Description = req.Request.Description,
-                                     Items = req.Items,
-                                     Language = locales[req.Request.Language],
-                                     OnFailureRedirectUrl = new Uri(req.Request.OnFailureRedirectUrl),
-                                     OnSuccessRedirectUrl = new Uri(req.Request.OnSuccessRedirectUrl),
-                                     PaymentMethod = Enum.Parse<PaymentMethod>(req.Request.PaymentMethod)!,
-                                     PassFeesToCustomer = req.Request.PassFeesToCustomer,
-                                     WebhookEndpointUrl = new Uri(req.Request.WebhookEndpointUrl),
-                                   });
-
     CreateMap<(PaymentLinkApiResponse Response, List<PaymentLinkItem> Items), Response<PaymentLinkResponse>>()
      .ConstructUsing((res, ctx) => new Response<PaymentLinkResponse>()
                                    {
                                      Id = res.Response.Id,
-                                     CreatedAt = DateTimeOffset.FromUnixTimeMilliseconds(res.Response.CreatedAt),
-                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeMilliseconds(res.Response.LastUpdatedAt),
+                                     CreatedAt = DateTimeOffset.FromUnixTimeSeconds(res.Response.CreatedAt),
+                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeSeconds(res.Response.LastUpdatedAt),
                                      IsLiveMode = res.Response.IsLiveMode,
                                      Value = new PaymentLinkResponse()
                                              {
@@ -100,7 +83,7 @@ public class PaymentLinkProfile : Profile
                                      Data = res.Items,
                                      CurrentPage = res.Response.CurrentPage,
                                      FirstPage = res.Response.FirstPageUrl.GetPageOrDefault(1),
-                                     LastPage = res.Response.LastPageUrl.GetPageOrDefault(1),
+                                     //LastPage = res.Response.LastPageUrl.GetPageOrDefault(1),
                                      NextPage = res.Response.NextPageUrl?.GetPage(),
                                      PreviousPage = res.Response.NextPageUrl?.GetPage(),
                                      PageSize = res.Response.PageSize,

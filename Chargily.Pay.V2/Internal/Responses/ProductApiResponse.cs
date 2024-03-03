@@ -4,6 +4,6 @@ internal record ProductApiResponse : BaseObjectApiResponse
 {
     public string Name { get; init; }
     public string? Description { get; init; }
-    public string[] ImagesUrls { get; init; }
-    public List<object>? Metadata { get; init; } = new();
+    public string[]? ImagesUrls { get; init; }
+    public List<string>? Metadata { get; init; } = new();
 }

@@ -11,7 +11,7 @@ public sealed record Checkout
     /// Checkout must provide either Checkout Items or Amount & Currency
     /// </summary>
     /// <param name="checkoutItems">Checkout Items</param>
-    public Checkout(List<CheckoutItem> checkoutItems)
+    public Checkout(List<CreateCheckoutItem> checkoutItems)
     {
         Items = checkoutItems;
     }
@@ -26,10 +26,9 @@ public sealed record Checkout
         Amount = amount;
         Currency = currency;
     }
-    public IReadOnlyList<CheckoutItem>? Items { get; internal set; }
+    public IReadOnlyList<CreateCheckoutItem>? Items { get; internal set; }
     public decimal? Amount { get; internal set; }
     public Currency? Currency { get; internal set; }
-    public Customer? Customer { get; init; }
     public string? CustomerId { get; init; }
 
     public PaymentMethod PaymentMethod { get; init; }
@@ -39,5 +38,5 @@ public sealed record Checkout
     public string Description { get; init; }
     public LocaleType Language { get; init; }
     public bool PassFeesToCustomer { get; init; }
-    public List<object>? Metadata { get; init; } = new();
+    public List<string>? Metadata { get; init; } = new();
 }

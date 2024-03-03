@@ -9,5 +9,5 @@ internal record CustomerApiResponse :  BaseObjectApiResponse
     public string? Email { get; init; }
     public string? Phone { get; init; }
     public AddressRequest? Address { get; init; }
-    public List<object>? Metadata { get; init; } = new();
+    public List<string>? Metadata { get; init; } = new();
 }

@@ -7,6 +7,11 @@ public class UtilityProfile : Profile
 {
   public UtilityProfile()
   {
+    CreateMap<long, DateTimeOffset>()
+     .ConstructUsing((x, _) => DateTimeOffset.FromUnixTimeSeconds(x))
+     .ReverseMap()
+     .ConstructUsing((x, _) => x.ToUnixTimeSeconds());
+    
     var languages = new Dictionary<LocaleType, string>()
                     {
                       { LocaleType.Arabic, "ar" },
@@ -23,7 +28,7 @@ public class UtilityProfile : Profile
     CreateMap<string, Currency>()
      .ConstructUsing((x, _) => Enum.Parse<Currency>(x.ToUpper()))
      .ReverseMap()
-     .ConstructUsing((x, _) => Enum.GetName(x)!.ToLowerInvariant());
+     .ConstructUsing((x, _) => Enum.GetName(x)!.ToLower());
 
     CreateMap<string, LocaleType>()
      .ConstructUsing((x, _) => locales[x])

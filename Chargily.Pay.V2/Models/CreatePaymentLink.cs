@@ -1,8 +1,7 @@
 ﻿namespace Chargily.Pay.V2.Models;
 
-public record PaymentLink
+public record CreatePaymentLink
 {
-  public string Id { get; set; }
   public string Name { get; init; }
   public bool IsActive { get; init; }
   public string CompletionMessage { get; init; }

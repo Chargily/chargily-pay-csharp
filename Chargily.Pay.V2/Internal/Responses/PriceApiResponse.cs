@@ -6,7 +6,7 @@ internal record PriceApiResponse : BaseObjectApiResponse
 {
     public decimal Amount { get; init; }
     public string Currency { get; init; } = null!;
-    public List<object>? Metadata { get; init; } = new();
+    public List<string>? Metadata { get; init; } = new();
     [JsonPropertyName("product_id")]
     public string ProductId { get; init; }
 }

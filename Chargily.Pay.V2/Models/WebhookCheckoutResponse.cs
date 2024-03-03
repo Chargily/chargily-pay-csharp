@@ -14,7 +14,7 @@ public sealed record WebhookCheckoutResponse
   public string? Description { get; init; }
   public LocaleType Language { get; init; }
   public bool PassFeesToCustomer { get; init; }
-  public List<object>? Metadata { get; init; } = new();
+  public List<string>? Metadata { get; init; } = new();
 
   public Uri CheckoutUrl { get; init; }
   public string InvoiceId { get; init; }

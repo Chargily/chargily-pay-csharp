@@ -9,7 +9,7 @@ internal sealed record CreatePriceRequest
     public decimal Amount { get; init; }
     public string Currency { get; init; } = null!;
     [JsonPropertyName("product_id")] public string ProductId { get; init; } = null!;
-    public List<object>? Metadata { get; init; } = new();
+    public List<string>? Metadata { get; init; } = new();
 }
 
 internal class CreatePriceRequestValidator : AbstractValidator<CreatePriceRequest>

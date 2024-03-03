@@ -8,5 +8,5 @@ public sealed record PaymentLinkItem
     public Currency Currency { get; init; }
     public int Quantity { get; init; }
     public bool AdjustableQuantity { get; init; }
-    public List<object>? Metadata { get; init; } = new();
+    public List<string>? Metadata { get; init; } = new();
 }

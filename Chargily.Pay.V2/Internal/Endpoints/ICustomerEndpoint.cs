@@ -16,7 +16,7 @@ internal partial interface IChargilyPayApi
     Task<CustomerApiResponse> GetCustomer([Query] string id);
 
     [Get("/customers")]
-    Task<PagedApiResponse<CustomerApiResponse>> GetCustomers([Query("page")] int page = 1, [Query("per_page")] int pageSize = 50);
+    Task<PagedApiResponse<CustomerApiResponse>> GetCustomers([Query("page")] int page = 1, [Query("per_page")] int per_page = 50);
     
     [Delete("/customers/{id}")]
     Task<CustomerApiResponse?> DeleteCustomer([Query] string id);

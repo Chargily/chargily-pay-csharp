@@ -11,7 +11,7 @@ internal sealed record UpdateCustomerRequest
     public string? Email { get; init; }
     public string? Phone { get; init; }
     public AddressRequest? Address { get; init; }
-    public List<object>? Metadata { get; init; }
+    public List<string>? Metadata { get; init; }
 }
 
 internal class UpdateCustomerRequestValidator : AbstractValidator<UpdateCustomerRequest>

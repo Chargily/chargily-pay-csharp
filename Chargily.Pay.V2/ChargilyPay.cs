@@ -3,6 +3,7 @@ using Chargily.Pay.V2.Abstractions;
 using Chargily.Pay.V2.Exceptions;
 using Chargily.Pay.V2.Internal;
 using Chargily.Pay.V2.Internal.Endpoints;
+using Chargily.Pay.V2.Internal.Requests;
 using Chargily.Pay.V2.Models;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +26,7 @@ public static class ChargilyPay
                          .AddSingleton<IOptions<ChargilyConfig>>(Options.Create(config))
                          .AddMemoryCache()
                          .AddAutoMapper(x => x.AddMaps(typeof(ResilientChargilyPayClient).Assembly))
-                         .AddValidatorsFromAssembly(typeof(ResilientChargilyPayClient).Assembly)
+                         .AddValidatorsFromAssemblyContaining<CreateProductRequestValidator>(ServiceLifetime.Singleton, includeInternalTypes:true)
                          .AddLogging(logConfig =>
                                      {
                                        logConfig.AddDebug();
@@ -61,6 +62,7 @@ public static class ChargilyPay
                          .AddSingleton<IWebhookValidator, ChargilyPayWebhookValidator>()
                          .BuildServiceProvider();
     var client = serviceProvider.GetRequiredService<IChargilyPayClient>();
+    
     ((client as ResilientChargilyPayClient)!).OnDisposing += () => serviceProvider.Dispose();
     return client;
   }

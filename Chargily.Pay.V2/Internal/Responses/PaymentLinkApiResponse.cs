@@ -17,6 +17,6 @@ internal record PaymentLinkApiResponse : BaseObjectApiResponse
 
     public string Url { get; init; }
 
-    public List<object>? Metadata { get; init; } = new();
+    public List<string>? Metadata { get; init; } = new();
 
 };

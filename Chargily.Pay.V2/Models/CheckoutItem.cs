@@ -7,7 +7,7 @@ public sealed record CheckoutItem
     public Product? Product { get; internal set; }
     public string ProductId { get; init; }
     public Currency Currency { get; init; }
-    public List<object>? Metadata { get; init; } = new();
+    public List<string>? Metadata { get; init; } = new();
     public decimal Amount { get; init; }
 
 }

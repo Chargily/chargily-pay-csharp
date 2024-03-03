@@ -24,8 +24,8 @@ public class WebhookProfile : Profile
      .ConstructUsing((res, ctx) => new WebhookResponse()
                                    {
                                      Id = res.Id,
-                                     CreatedAt = DateTimeOffset.FromUnixTimeMilliseconds(res.CreatedAt),
-                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeMilliseconds(res.LastUpdatedAt),
+                                     CreatedAt = DateTimeOffset.FromUnixTimeSeconds(res.CreatedAt),
+                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeSeconds(res.LastUpdatedAt),
                                      IsLiveMode = res.IsLiveMode,
                                      Data = new WebhookCheckoutResponse()
                                              {

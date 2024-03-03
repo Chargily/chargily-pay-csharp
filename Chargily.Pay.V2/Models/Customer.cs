@@ -7,5 +7,5 @@ public sealed record Customer
     public string? Email { get; init; }
     public string? Phone { get; init; }
     public CustomerAddress? Address { get; init; }
-    public List<object>? Metadata { get; init; } = new();
+    public List<string>? Metadata { get; init; } = new();
 }

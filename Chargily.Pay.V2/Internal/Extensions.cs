@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using FluentValidation.Results;
@@ -43,6 +44,7 @@ public static class Extensions
         return JsonSerializer.Serialize(value,
                                         new JsonSerializerOptions()
                                         {
+                                            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
                                             WriteIndented = true,
                                             DefaultIgnoreCondition =
                                                 removeNullFields

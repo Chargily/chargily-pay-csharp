@@ -26,7 +26,7 @@ internal record CreateCheckoutRequest
     [JsonPropertyName("pass_fees_to_customer")]
     public bool PassFeesToCustomer { get; init; }
 
-    public List<object>? Metadata { get; init; } = new();
+    public List<string>? Metadata { get; init; } = new();
 }
 
 internal class CreateCheckoutRequestValidator : AbstractValidator<CreateCheckoutRequest>

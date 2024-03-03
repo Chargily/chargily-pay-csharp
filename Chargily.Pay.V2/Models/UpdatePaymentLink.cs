@@ -8,5 +8,5 @@ public sealed record UpdatePaymentLink
     public string? CompletionMessage { get; init; }
     public LocaleType? Language { get; init; }
     public bool? PassFeesToCustomer { get; init; }
-    public List<object>? Metadata { get; init; } = new();
+    public List<string>? Metadata { get; init; } = new();
 }

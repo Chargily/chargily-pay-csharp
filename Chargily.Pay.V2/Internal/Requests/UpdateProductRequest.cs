@@ -9,7 +9,7 @@ internal sealed record UpdateProductRequest
     public string? Name { get; init; }
     public string? Description { get; init; }
     [JsonPropertyName("images")] public string[]? ImagesUrls { get; init; }
-    public List<object>? Metadata { get; init; }
+    public List<string>? Metadata { get; init; }
 }
 
 internal class UpdateProductRequestValidator : AbstractValidator<UpdateProductRequest>

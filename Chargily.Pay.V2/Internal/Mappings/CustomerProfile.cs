@@ -24,7 +24,7 @@ public class CustomerProfile : Profile
                                      State = res.State
                                    });
 
-    CreateMap<Customer, CreateCustomerRequest>()
+    CreateMap<CreateCustomer, CreateCustomerRequest>()
      .ConstructUsing((req, ctx) => new CreateCustomerRequest()
                                    {
                                      Metadata = req.Metadata,
@@ -49,8 +49,8 @@ public class CustomerProfile : Profile
      .ConstructUsing((res, ctx) => new Response<Customer>()
                                    {
                                      Id = res.Id,
-                                     CreatedAt = DateTimeOffset.FromUnixTimeMilliseconds(res.CreatedAt),
-                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeMilliseconds(res.LastUpdatedAt),
+                                     CreatedAt = DateTimeOffset.FromUnixTimeSeconds(res.CreatedAt),
+                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeSeconds(res.LastUpdatedAt),
                                      IsLiveMode = res.IsLiveMode,
                                      Value = new Customer()
                                              {
@@ -79,7 +79,7 @@ public class CustomerProfile : Profile
                                      Data = ctx.Mapper.Map<List<Customer>>(res.Data),
                                      CurrentPage = res.CurrentPage,
                                      FirstPage = res.FirstPageUrl.GetPageOrDefault(1),
-                                     LastPage = res.LastPageUrl.GetPageOrDefault(1),
+                                     //LastPage = res.LastPageUrl.GetPageOrDefault(1),
                                      NextPage = res.NextPageUrl?.GetPage(),
                                      PreviousPage = res.NextPageUrl?.GetPage(),
                                      PageSize = res.PageSize,

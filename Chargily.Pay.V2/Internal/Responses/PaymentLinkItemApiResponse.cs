@@ -12,5 +12,5 @@ internal record PaymentLinkItemApiResponse : BaseObjectApiResponse
     [JsonPropertyName("adjustable_quantity")]
     public bool AdjustableQuantity { get; init; }
 
-    public List<object>? Metadata { get; init; } = new();
+    public List<string>? Metadata { get; init; } = new();
 }

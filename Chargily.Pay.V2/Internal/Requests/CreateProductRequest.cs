@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using System.Text.Json.Serialization;
+using FluentValidation;
 
 namespace Chargily.Pay.V2.Internal.Requests;
 
@@ -6,8 +7,9 @@ internal sealed record CreateProductRequest
 {
     public string Name { get; init; }
     public string? Description { get; init; }
+    [JsonPropertyName("images")]
     public string[] ImagesUrls { get; init; }
-    public List<object> Metadata { get; init; } = new();
+    public List<string> Metadata { get; init; } = new();
 }
 
 internal class CreateProductRequestValidator : AbstractValidator<CreateProductRequest>

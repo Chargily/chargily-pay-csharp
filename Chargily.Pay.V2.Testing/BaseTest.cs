@@ -19,12 +19,6 @@ public class BaseTest
                        .AddEnvironmentVariables()
                        .AddUserSecrets<BaseTest>()
                        .Build();
-
-    foreach (var env in configuration.AsEnumerable())
-    {
-      Console.WriteLine($"{env.Key}:{env.Value}");
-    }
-
     var apiSecret = configuration["CHARGILY_SECRET_KEY"]!;
 
     Log.Logger = new LoggerConfiguration()

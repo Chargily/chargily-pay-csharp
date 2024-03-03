@@ -42,7 +42,7 @@ public class CheckoutProfile : Profile
                                      PassFeesToCustomer = req.PassFeesToCustomer,
                                      WebhookEndpointUrl = req.WebhookEndpointUrl.ToString(),
                                    });
-    CreateMap<(CreateCheckoutRequest Request, List<CheckoutItem> Items, Customer? Customer, PaymentLink? PaymentLink), Checkout>()
+    CreateMap<(CreateCheckoutRequest Request, List<CreateCheckoutItem> Items, Customer? Customer, PaymentLink? PaymentLink), Checkout>()
      .ConstructUsing((req, ctx) => new Checkout()
                                    {
                                      Metadata = req.Request.Metadata,
@@ -63,8 +63,8 @@ public class CheckoutProfile : Profile
      .ConstructUsing((res, ctx) => new Response<CheckoutResponse>()
                                    {
                                      Id = res.Response.Id,
-                                     CreatedAt = DateTimeOffset.FromUnixTimeMilliseconds(res.Response.CreatedAt),
-                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeMilliseconds(res.Response.LastUpdatedAt),
+                                     CreatedAt = DateTimeOffset.FromUnixTimeSeconds(res.Response.CreatedAt),
+                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeSeconds(res.Response.LastUpdatedAt),
                                      IsLiveMode = res.Response.IsLiveMode,
                                      Value = new CheckoutResponse()
                                              {
@@ -122,7 +122,7 @@ public class CheckoutProfile : Profile
                                      Data = res.Items,
                                      CurrentPage = res.Response.CurrentPage,
                                      FirstPage = res.Response.FirstPageUrl.GetPageOrDefault(1),
-                                     LastPage = res.Response.LastPageUrl.GetPageOrDefault(1),
+                                     //LastPage = res.Response.LastPageUrl.GetPageOrDefault(1),
                                      NextPage = res.Response.NextPageUrl?.GetPage(),
                                      PreviousPage = res.Response.NextPageUrl?.GetPage(),
                                      PageSize = res.Response.PageSize,

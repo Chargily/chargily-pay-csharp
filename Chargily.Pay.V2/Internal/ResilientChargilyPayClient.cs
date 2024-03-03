@@ -73,6 +73,7 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                 MaxRetryAttempts = _config.Value.MaxRetriesOnFailure,
                               })
                     .Build();
+    StartDataRefreshers();
   }
   
 
@@ -88,16 +89,21 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                      {
                                        foreach (var type in list)
                                        {
-                                         _cancellations[type].ForEach(x =>
-                                                                      {
-                                                                        try
+                                         try
+                                         {
+                                           _cancellations[type].ForEach(x =>
                                                                         {
-                                                                          x.Cancel();
-                                                                          x.Dispose();
-                                                                        }
-                                                                        catch{}
-                                                                      });
-                                         _cancellations[type].Clear();
+                                                                          try
+                                                                          {
+                                                                            x.Cancel();
+                                                                            x.Dispose();
+                                                                          }
+                                                                          catch{}
+                                                                        });
+                                           _cancellations[type].Clear();
+                                         }
+                                         catch{}
+                                         
                                        }
                                      })
                                  .Subscribe();
@@ -121,7 +127,10 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
   {
     var cancellationTokenSource = new CancellationTokenSource();
     var cancellation = new CancellationChangeToken(cancellationTokenSource.Token);
-    _cancellations[entityType].Add(cancellationTokenSource);
+    if(_cancellations.TryGetValue(entityType, out var list));
+    {
+      list?.Add(cancellationTokenSource);
+    }
     return cancellation;
   }
 
@@ -130,17 +139,25 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
   private async Task<List<T>> ExhaustAllPages<T>(Func<int, Task<PagedApiResponse<T>>> fetchFunction)
     where T : BaseObjectApiResponse
   {
-    var current = await _retryPipeline.ExecuteAsync(async (_) => await fetchFunction(1));
-    var result = new List<T>();
-    do
+    try
     {
-      result.AddRange(current.Data);
-      if (current.GetNextPage() is not null)
-        current = await _retryPipeline.ExecuteAsync(async (_) =>
-                                                      await fetchFunction((int)current.GetNextPage()!));
-    } while (current.GetNextPage() is not null && current.GetNextPage() != current.LastPage);
+      var current = await _retryPipeline.ExecuteAsync(async (_) => await fetchFunction(1));
+      var result = new List<T>();
+      do
+      {
+        result.AddRange(current.Data);
+        if (current.GetNextPage() is not null)
+          current = await _retryPipeline.ExecuteAsync(async (_) =>
+                                                        await fetchFunction((int)current.GetNextPage()!));
+      } while (current.GetNextPage() is not null && current.GetNextPage() != current.LastPage);
 
-    return result;
+      return result;
+    }
+    catch (Exception e)
+    {
+      //_logger?.LogTrace("{@namFn} threw an exception: {@ex}", nameof(ExhaustAllPages), e.ToString());
+      return [];
+    }
   }
 
   public IWebhookValidator WebhookValidator { get; }
@@ -173,7 +190,7 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
 
 #region Product
 
-  public async Task<Response<Product>> AddProduct(Product product)
+  public async Task<Response<Product>> AddProduct(CreateProduct product)
   {
     var request = _mapper.Map<CreateProductRequest>(product);
     var validation = await GetValidator<CreateProductRequest>()
@@ -317,7 +334,7 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
 
 #region Customer
 
-  public async Task<Response<Customer>> AddCustomer(Customer customer)
+  public async Task<Response<Customer>> AddCustomer(CreateCustomer customer)
   {
     var request = _mapper.Map<CreateCustomerRequest>(customer);
     var validation = await GetValidator<CreateCustomerRequest>()
@@ -413,7 +430,7 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
 
 #region PaymentLink
 
-  public async Task<Response<PaymentLinkResponse>> CreatePaymentLink(PaymentLink paymentLink)
+  public async Task<Response<PaymentLinkResponse>> CreatePaymentLink(CreatePaymentLink paymentLink)
   {
     var request = _mapper.Map<CreatePaymentLinkRequest>(paymentLink);
     var validation = await GetValidator<CreatePaymentLinkRequest>()
@@ -677,7 +694,7 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
 
 #region Price
 
-  public async Task<Response<Price>> AddPrice(Price price)
+  public async Task<Response<Price>> AddPrice(CreatePrice price)
   {
     var request = _mapper.Map<CreatePriceRequest>(price);
     var validation = await GetValidator<CreatePriceRequest>()

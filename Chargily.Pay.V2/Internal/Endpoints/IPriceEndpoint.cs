@@ -16,6 +16,6 @@ internal partial interface IChargilyPayApi
     Task<PriceApiResponse> GetPrice([Query] string id);
 
     [Get("/prices")]
-    Task<PagedApiResponse<PriceApiResponse>> GetPrices([Query("page")] int page = 1, [Query("per_page")] int pageSize = 50);
+    Task<PagedApiResponse<PriceApiResponse>> GetPrices([Query("page")] int page = 1, [Query("per_page")] int per_page = 50);
     
 }

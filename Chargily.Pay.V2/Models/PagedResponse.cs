@@ -9,7 +9,7 @@ public sealed record PagedResponse<T>
     public int? PreviousPage { get; init; }
     public int? NextPage { get; init; }
     public int FirstPage { get; init; }
-    public int LastPage { get; init; }
+    public int? LastPage { get; init; }
     public int PageSize { get; init; }
     public int Total { get; init; }
 }

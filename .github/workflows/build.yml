@@ -36,7 +36,9 @@ jobs:
         run: dotnet build ./Chargily.Pay.V2 -c Release --no-restore -p:Version=${{ env.RELEASE_VERSION }}
 
       - name: Test
-        run: CHARGILY_SECRET_KEY=${{ secrets.CHARGILY_SECRET_KEY }} dotnet test -c Release --no-restore --no-build
+        env:
+          CHARGILY_SECRET_KEY: ${{ secrets.CHARGILY_SECRET_KEY }}
+        run: dotnet test -c Release --no-restore --no-build
 
 #      - name: Upload Nuget Package
 #        run: dotnet nuget push ./Chargily.Pay.V2/bin/Release/Chargily.Pay.V2.${{ env.RELEASE_VERSION }}.nupkg --skip-duplicate --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

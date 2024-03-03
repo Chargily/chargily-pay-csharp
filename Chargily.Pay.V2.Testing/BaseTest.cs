@@ -16,6 +16,7 @@ public class BaseTest
   public void Setup()
   {
     var configuration = new ConfigurationBuilder()
+                       .AddEnvironmentVariables()
                        .AddUserSecrets<BaseTest>()
                        .Build();
 

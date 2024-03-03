@@ -15,9 +15,16 @@ public class BaseTest
   [SetUp]
   public void Setup()
   {
+    
     var configuration = new ConfigurationBuilder()
+                       .AddEnvironmentVariables()
                        .AddEnvironmentVariables("CHARGILY_SECRET_KEY")
                        .Build();
+
+    foreach (var env in configuration.AsEnumerable())
+    {
+      Console.WriteLine($"{env.Key}:{env.Value}");
+    }
     var apiSecret = IsWindows()
                       ? Environment.GetEnvironmentVariable("CHARGILY_SECRET_KEY", EnvironmentVariableTarget.User)
                       : configuration["CHARGILY_SECRET_KEY"]!;

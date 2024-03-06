@@ -1,8 +1,12 @@
 ﻿using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Chargily.Pay.V2.Abstractions;
 using Chargily.Pay.V2.Exceptions;
 using Chargily.Pay.V2.Internal;
 using Chargily.Pay.V2.Internal.Endpoints;
+using Chargily.Pay.V2.Internal.JsonConverters;
 using Chargily.Pay.V2.Internal.Requests;
 using Chargily.Pay.V2.Models;
 using FluentValidation;
@@ -37,8 +41,13 @@ public static class ChargilyPay
                          .AddRefitClient<IChargilyPayApi>(provider =>
                                                           {
                                                             var logger = provider.GetRequiredService<ILogger<IChargilyPayClient>>();
+                                                            var jsonOptions = SystemTextJsonContentSerializer.GetDefaultJsonSerializerOptions();
+                                                            jsonOptions.Converters.Add(new IntegerToBooleanConverter());
+                                                            jsonOptions.WriteIndented = true;
+                                                            jsonOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
                                                             return new RefitSettings()
                                                                    {
+                                                                     ContentSerializer = new SystemTextJsonContentSerializer(jsonOptions),
                                                                      // AuthorizationHeaderValueGetter =
                                                                      //   (_, _) => { return Task.FromResult($"Bearer {config.ApiSecretKey}"); },
                                                                      ExceptionFactory = async (message) =>

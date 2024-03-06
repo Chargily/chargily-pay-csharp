@@ -9,18 +9,6 @@ public class CheckoutProfile : Profile
 {
   public CheckoutProfile()
   {
-    var languages = new Dictionary<LocaleType, string>()
-                    {
-                      { LocaleType.Arabic, "ar" },
-                      { LocaleType.English, "en" },
-                      { LocaleType.French, "fr" },
-                    };
-    var locales = new Dictionary<string, LocaleType>()
-                  {
-                    { "ar", LocaleType.Arabic },
-                    { "en", LocaleType.English },
-                    { "fr", LocaleType.French },
-                  };
     CreateMap<Checkout, CreateCheckoutRequest>()
      .ConstructUsing((req, ctx) => new CreateCheckoutRequest()
                                    {
@@ -35,13 +23,18 @@ public class CheckoutProfile : Profile
                                                                       Quantity = x.Quantity
                                                                     })
                                                 .ToArray(),
-                                     Language = languages[req.Language],
+                                     Language = Language.GetLanguage(req.Language) ?? "en",
                                      OnFailureRedirectUrl = req.OnFailureRedirectUrl.ToString(),
                                      OnSuccessRedirectUrl = req.OnSuccessRedirectUrl.ToString(),
                                      PaymentMethod = Enum.GetName(req.PaymentMethod)!,
                                      PassFeesToCustomer = req.PassFeesToCustomer,
                                      WebhookEndpointUrl = req.WebhookEndpointUrl.ToString(),
-                                   });
+                                   })
+     .AfterMap((_, result) =>
+               {
+                 if (result.Items is { Length: 0 })
+                   result.Items = null;
+               });
     CreateMap<(CreateCheckoutRequest Request, List<CreateCheckoutItem> Items, Customer? Customer, PaymentLink? PaymentLink), Checkout>()
      .ConstructUsing((req, ctx) => new Checkout()
                                    {
@@ -51,12 +44,41 @@ public class CheckoutProfile : Profile
                                      CustomerId = req.Request.CustomerId,
                                      Description = req.Request.Description,
                                      Items = req.Items,
-                                     Language = locales[req.Request.Language],
+                                     Language = Language.GetLocalType(req.Request.Language) ?? LocaleType.English,
                                      OnFailureRedirectUrl = new Uri(req.Request.OnFailureRedirectUrl),
                                      OnSuccessRedirectUrl = new Uri(req.Request.OnSuccessRedirectUrl),
                                      PaymentMethod = Enum.Parse<PaymentMethod>(req.Request.PaymentMethod)!,
                                      PassFeesToCustomer = req.Request.PassFeesToCustomer,
                                      WebhookEndpointUrl = new Uri(req.Request.WebhookEndpointUrl),
+                                   });
+
+    CreateMap < CheckoutApiResponse, Response<CheckoutResponse>>()
+     .ConstructUsing((res, ctx) => new Response<CheckoutResponse>()
+                                   {
+                                     Id = res.Id,
+                                     CreatedAt = DateTimeOffset.FromUnixTimeSeconds(res.CreatedAt),
+                                     LastUpdatedAt = DateTimeOffset.FromUnixTimeSeconds(res.LastUpdatedAt),
+                                     IsLiveMode = res.IsLiveMode,
+                                     Value = new CheckoutResponse()
+                                             {
+                                               Id = res.Id,
+                                               Metadata = res.Metadata,
+                                               Amount = res.Amount,
+                                               Currency = ctx.Mapper.Map<Currency>(res.Currency),
+                                               CheckoutUrl = new Uri(res.CheckoutUrl),
+                                               WebhookEndpointUrl = new Uri(res.WebhookEndpointUrl),
+                                               OnFailureRedirectUrl = new Uri(res.OnFailureRedirectUrl),
+                                               OnSuccessRedirectUrl = new Uri(res.OnSuccessRedirectUrl),
+                                               PaymentLinkId = res.PaymentLinkId,
+                                               CustomerId = res.CustomerId,
+                                               InvoiceId = res.InvoiceId,
+                                               Fees = res.Fees,
+                                               Status = Enum.GetValues<CheckoutStatus>().FirstOrDefault(x => x.ToString().Equals(res.Status, StringComparison.OrdinalIgnoreCase)),
+                                               Language = Language.GetLocalType(res.Language) ?? LocaleType.English,
+                                               Description = res.Description,
+                                               PaymentMethod = Enum.GetValues<PaymentMethod>().FirstOrDefault(x => x.ToString().Equals(res.PaymentMethod, StringComparison.OrdinalIgnoreCase)),
+                                               PassFeesToCustomer = res.PassFeesToCustomer
+                                             },
                                    });
 
     CreateMap<(CheckoutApiResponse Response, List<CheckoutItem> Items, Customer? Customer, PaymentLink? PaymentLink), Response<CheckoutResponse>>()
@@ -83,7 +105,7 @@ public class CheckoutProfile : Profile
                                                InvoiceId = res.Response.InvoiceId,
                                                Fees = res.Response.Fees,
                                                Status = Enum.Parse<CheckoutStatus>(res.Response.Status),
-                                               Language = locales[res.Response.Language],
+                                               Language = Language.GetLocalType(res.Response.Language) ?? LocaleType.English,
                                                Description = res.Response.Description,
                                                Items = res.Items,
                                                PaymentMethod = Enum.Parse<PaymentMethod>(res.Response.PaymentMethod),
@@ -109,7 +131,7 @@ public class CheckoutProfile : Profile
                                      InvoiceId = res.Response.InvoiceId,
                                      Fees = res.Response.Fees,
                                      Status = Enum.Parse<CheckoutStatus>(res.Response.Status),
-                                     Language = locales[res.Response.Language],
+                                     Language = Language.GetLocalType(res.Response.Language) ?? LocaleType.English,
                                      Description = res.Response.Description,
                                      Items = res.Items,
                                      PaymentMethod = Enum.Parse<PaymentMethod>(res.Response.PaymentMethod),

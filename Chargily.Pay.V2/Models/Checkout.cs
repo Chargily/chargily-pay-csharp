@@ -21,10 +21,12 @@ public sealed record Checkout
     /// </summary>
     /// <param name="amount">Checkout Amount</param>
     /// <param name="currency">Currency</param>
-    public Checkout(decimal amount, Currency currency)
+    public Checkout(decimal amount, Currency currency, string customerId)
     {
         Amount = amount;
         Currency = currency;
+        CustomerId = customerId;
+        Items = null;
     }
     public IReadOnlyList<CreateCheckoutItem>? Items { get; internal set; }
     public decimal? Amount { get; internal set; }

@@ -564,6 +564,8 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
 
     _logger?.LogInformation("Creating a new Checkout...");
     _logger?.LogDebug("Creating a new Checkout...\n{@request}", request.Stringify());
+    var requestJson = request.Stringify(true);
+    _logger?.LogInformation("{0}", requestJson);
     var response = await _chargilyPayApi.CreateCheckout(request);
     var result = _mapper.Map<Response<CheckoutResponse>>(response);
     _logger?.LogInformation("Checkout created, with invoice-id {@id} and checkout-url: {@url}",

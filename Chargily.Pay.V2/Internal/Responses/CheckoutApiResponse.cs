@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Chargily.Pay.V2.Internal.JsonConverters;
 
 namespace Chargily.Pay.V2.Internal.Responses;
 
@@ -15,6 +16,7 @@ internal record CheckoutApiResponse : BaseObjectApiResponse
     [JsonPropertyName("locale")] public string Language { get; init; }
 
     [JsonPropertyName("pass_fees_to_customer")]
+    [JsonConverter(typeof(IntegerToBooleanConverter))]
     public bool PassFeesToCustomer { get; init; }
 
     public List<string>? Metadata { get; init; } = new();

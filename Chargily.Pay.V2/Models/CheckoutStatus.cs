@@ -5,5 +5,6 @@ public enum CheckoutStatus
     Pending,
     Paid,
     Failed,
-    Canceled
+    Canceled,
+    Expired
 }

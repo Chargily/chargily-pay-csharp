@@ -9,24 +9,13 @@ public class PaymentLinkProfile : Profile
 {
   public PaymentLinkProfile()
   {
-    var languages = new Dictionary<LocaleType, string>()
-                    {
-                      { LocaleType.Arabic, "ar" },
-                      { LocaleType.English, "en" },
-                      { LocaleType.French, "fr" },
-                    };
-    var locales = new Dictionary<string, LocaleType>()
-                  {
-                    { "ar", LocaleType.Arabic },
-                    { "en", LocaleType.English },
-                    { "fr", LocaleType.French },
-                  };
+
     CreateMap<CreatePaymentLink, CreatePaymentLinkRequest>()
      .ConstructUsing((req, ctx) => new CreatePaymentLinkRequest()
                                    {
                                      Metadata = req.Metadata,
                                      PassFeesToCustomer = req.PassFeesToCustomer,
-                                     Language = languages[req.Language],
+                                     Language = Language.GetLanguage(req.Language) ?? "en",
                                      CompletionMessage = req.CompletionMessage,
                                      IsActive = req.IsActive,
                                      Name = req.Name
@@ -37,7 +26,7 @@ public class PaymentLinkProfile : Profile
                                      Id = req.Id,
                                      Metadata = req.Metadata,
                                      PassFeesToCustomer = req.PassFeesToCustomer,
-                                     Language = languages[(LocaleType)req.Language],
+                                     Language = Language.GetLanguage(req.Language ?? LocaleType.English),
                                      CompletionMessage = req.CompletionMessage,
                                      IsActive = req.IsActive,
                                      Name = req.Name
@@ -54,7 +43,7 @@ public class PaymentLinkProfile : Profile
                                              {
                                                Id = res.Response.Id,
                                                Metadata = res.Response.Metadata,
-                                               Language = locales[res.Response.Language],
+                                               Language = Language.GetLocalType(res.Response.Language) ?? LocaleType.English ,
                                                Items = res.Items,
                                                PassFeesToCustomer = res.Response.PassFeesToCustomer,
                                                CompletionMessage = res.Response.CompletionMessage,
@@ -68,7 +57,7 @@ public class PaymentLinkProfile : Profile
                                    {
                                      Id = res.Response.Id,
                                      Metadata = res.Response.Metadata,
-                                     Language = locales[res.Response.Language],
+                                     Language = Language.GetLocalType(res.Response.Language) ?? LocaleType.English,
                                      Items = res.Items,
                                      PassFeesToCustomer = res.Response.PassFeesToCustomer,
                                      CompletionMessage = res.Response.CompletionMessage,

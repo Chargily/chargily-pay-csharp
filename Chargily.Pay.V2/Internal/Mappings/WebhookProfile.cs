@@ -8,18 +8,7 @@ public class WebhookProfile : Profile
 {
   public WebhookProfile()
   {
-    var languages = new Dictionary<LocaleType, string>()
-                    {
-                      { LocaleType.Arabic, "ar" },
-                      { LocaleType.English, "en" },
-                      { LocaleType.French, "fr" },
-                    };
-    var locales = new Dictionary<string, LocaleType>()
-                  {
-                    { "ar", LocaleType.Arabic },
-                    { "en", LocaleType.English },
-                    { "fr", LocaleType.French },
-                  };
+
     CreateMap<WebhookApiResponse, WebhookResponse>()
      .ConstructUsing((res, ctx) => new WebhookResponse()
                                    {
@@ -42,7 +31,7 @@ public class WebhookProfile : Profile
                                                InvoiceId = res.Data.InvoiceId,
                                                Fees = res.Data.Fees,
                                                Status = Enum.Parse<CheckoutStatus>(res.Data.Status),
-                                               Language = locales[res.Data.Language],
+                                               Language = Language.GetLocalType(res.Data.Language) ?? LocaleType.English,
                                                Description = res.Data.Description,
                                                PaymentMethod = Enum.Parse<PaymentMethod>(res.Data.PaymentMethod),
                                                PassFeesToCustomer = res.Data.PassFeesToCustomer

@@ -12,28 +12,15 @@ public class UtilityProfile : Profile
      .ReverseMap()
      .ConstructUsing((x, _) => x.ToUnixTimeSeconds());
     
-    var languages = new Dictionary<LocaleType, string>()
-                    {
-                      { LocaleType.Arabic, "ar" },
-                      { LocaleType.English, "en" },
-                      { LocaleType.French, "fr" },
-                    };
-    var locales = new Dictionary<string, LocaleType>()
-                  {
-                    { "ar", LocaleType.Arabic },
-                    { "en", LocaleType.English },
-                    { "fr", LocaleType.French },
-                  };
-    
     CreateMap<string, Currency>()
      .ConstructUsing((x, _) => Enum.Parse<Currency>(x.ToUpper()))
      .ReverseMap()
      .ConstructUsing((x, _) => Enum.GetName(x)!.ToLower());
 
     CreateMap<string, LocaleType>()
-     .ConstructUsing((x, _) => locales[x])
+     .ConstructUsing((x, _) => Language.GetLocalType(x) ?? LocaleType.English)
      .ReverseMap()
-     .ConstructUsing((x, _) => languages[x]);
+     .ConstructUsing((x, _) => Language.GetLanguage(x) ?? "en");
 
     CreateMap<string, Country>()
      .ConstructUsing((x, _) => CountryCode.GetCountry(x) ?? Country.Algeria)

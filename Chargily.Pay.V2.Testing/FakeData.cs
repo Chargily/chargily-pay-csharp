@@ -35,16 +35,15 @@ public class FakeData
           .Generate();
   }
 
-  public static Checkout Checkout(Func<Faker<Checkout>, Faker<Checkout>>? modifier = null)
+  public static Checkout Checkout(string customerId, Func<Faker<Checkout>, Faker<Checkout>>? modifier = null)
   {
     return new Faker<Checkout>()
-          .CustomInstantiator(f => new Checkout(f.Finance.Amount(100, 2000), Currency.DZD)
+          .CustomInstantiator(f => new Checkout(f.Finance.Amount(100, 2000), Currency.DZD, customerId)
                                    {
                                      Metadata = ["Metadata" ],
                                      Description = f.Random.String2(10),
                                      PaymentMethod = f.PickRandom<PaymentMethod>(),
-                                     CustomerId = Nanoid.Generate(size: 26),
-                                     WebhookEndpointUrl = new Uri(f.Internet.Url()),
+                                     WebhookEndpointUrl = new Uri(f.Internet.Url() + "/endpoint"),
                                      OnFailureRedirectUrl = new Uri(f.Internet.Url()),
                                      OnSuccessRedirectUrl = new Uri(f.Internet.Url()),
                                      PassFeesToCustomer = f.PickRandom(true, false),
@@ -118,7 +117,7 @@ public class FakeData
                                                  State = f.Address.State()
                                                },
                                      Email = f.Internet.Email(),
-                                     Phone = f.Phone.PhoneNumber()
+                                     Phone = $"+21306{f.Random.String2(8,"0123456789")}"
                                    })
           .Map(x => modifier?.Invoke(x) ?? x)
           .Generate();

@@ -24,7 +24,7 @@ public class PriceTests : BaseTest
   }
   
   [Test]
-  public async Task GetProduct_Should_Succeed()
+  public async Task GetPrice_Should_Succeed()
   {
     var product = FakeData.CreateProduct();
     var productActual = await _chargilyPayClient.AddProduct(product);

@@ -144,6 +144,14 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
   }
 
 
+  // var current = await GetProducts(1);
+  //   do
+  // {
+  //   foreach (var item in current.Data)
+  //     yield return _mapper.Map<Product>(item)!;
+  //   if (!current.HasNextPage) break;
+  //   current = await GetProducts((int)current.NextPage!);
+  // } while (current.CurrentPage <= current.TotalPages && current.Data is not { Count: 0 });
   private async Task<List<T>> ExhaustAllPages<T>(Func<int, Task<PagedApiResponse<T>>> fetchFunction)
     where T : BaseObjectApiResponse
   {
@@ -154,10 +162,9 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
       do
       {
         result.AddRange(current.Data);
-        if (current.GetNextPage() is not null)
-          current = await _retryPipeline.ExecuteAsync(async (_) =>
-                                                        await fetchFunction((int)current.GetNextPage()!));
-      } while (current.GetNextPage() is not null && current.GetNextPage() != current.LastPage);
+        if (current.GetNextPage() is null) break;
+          current = await _retryPipeline.ExecuteAsync(async (_) => await fetchFunction((int)current.GetNextPage()!));
+      } while (current.CurrentPage <= current.GetTotalPages() && current.Data is not { Count: 0 });
 
       return result;
     }
@@ -312,10 +319,10 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                               _logger?.LogInformation("Fetching Prices of Product with id: {@id}...", productId);
                                               var response = await ExhaustAllPages((p) => _chargilyPayApi.GetProductPrices(productId, p));
                                               var result = new List<Price>();
-                                              foreach (var item in result)
+                                              foreach (var item in response)
                                               {
                                                 var product = await GetProduct(item.ProductId);
-                                                var mapped = _mapper.Map<Price>((item, product));
+                                                var mapped = _mapper.Map<Price>((item, product?.Value));
                                                 result.Add(mapped);
                                                 _cache.Set(CacheKey.From(EntityType.Price, _config.Value, item.Id),
                                                            mapped, _config.Value.GetCacheDuration());
@@ -624,7 +631,7 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                                    {
                                                                      var product = await GetProduct(checkoutItemResponse.ProductId);
                                                                      var mapped = _mapper.Map<CheckoutItem>((checkoutItemResponse, product?.Value));
-                                                                     _cache.Set(CacheKey.From(EntityType.CheckoutItem, _config.Value, mapped.Id),
+                                                                     _cache.Set(CacheKey.From(EntityType.CheckoutItem, _config.Value, mapped.PriceId),
                                                                                 mapped, _config.Value.GetCacheDuration());
                                                                      items.Add(mapped);
                                                                    }

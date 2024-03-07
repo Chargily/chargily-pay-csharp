@@ -178,7 +178,7 @@ public class CheckoutProfile : Profile
     CreateMap<(CheckoutItemApiResponse Response, Product? Product), CheckoutItem>()
      .ConstructUsing((res, ctx) => new CheckoutItem()
                                    {
-                                     Id = res.Response.Id,
+                                     PriceId = res.Response.Id,
                                      Amount = res.Response.Amount,
                                      Currency = ctx.Mapper.Map<Currency>(res.Response.Currency),
                                      Metadata = res.Response.Metadata,

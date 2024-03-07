@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/rainxh11/chargily-pay-csharp/master/assets/chargily_wide.svg" width="300"/>
+<img src="https://raw.githubusercontent.com/rainxh11/chargily-pay-csharp/main/Assets/chargily_wide.svg" width="300"/>
 
 | Nuget Pacakge                                                                                                                 | Downloads                                                                |
 |-------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|

@@ -9,6 +9,13 @@ public class CheckoutProfile : Profile
 {
   public CheckoutProfile()
   {
+
+    CreateMap<CheckoutPriceItem, CheckoutItemPriceRequest>()
+     .ConstructUsing((req, ctx) => new CheckoutItemPriceRequest()
+                                   {
+                                     Quantity = req.Quantity,
+                                     PriceId = req.PriceId,
+                                   });
     CreateMap<Checkout, CreateCheckoutRequest>()
      .ConstructUsing((req, ctx) => new CreateCheckoutRequest()
                                    {
@@ -17,12 +24,7 @@ public class CheckoutProfile : Profile
                                      Amount = req.Amount,
                                      CustomerId = req.CustomerId,
                                      Description = req.Description,
-                                     Items = req.Items?.Select(x => new CheckoutItemRequest()
-                                                                    {
-                                                                      Price = x.Amount.ToString(),
-                                                                      Quantity = x.Quantity
-                                                                    })
-                                                .ToArray(),
+                                     Items = ctx.Mapper.Map<CheckoutItemPriceRequest[]>(req.Items),
                                      Language = Language.GetLanguage(req.Language) ?? "en",
                                      OnFailureRedirectUrl = req.OnFailureRedirectUrl.ToString(),
                                      OnSuccessRedirectUrl = req.OnSuccessRedirectUrl.ToString(),
@@ -35,7 +37,7 @@ public class CheckoutProfile : Profile
                  if (result.Items is { Length: 0 })
                    result.Items = null;
                });
-    CreateMap<(CreateCheckoutRequest Request, List<CreateCheckoutItem> Items, Customer? Customer, PaymentLink? PaymentLink), Checkout>()
+    CreateMap<(CreateCheckoutRequest Request, List<CheckoutPriceItem> Items, Customer? Customer, PaymentLink? PaymentLink), Checkout>()
      .ConstructUsing((req, ctx) => new Checkout()
                                    {
                                      Metadata = req.Request.Metadata,
@@ -80,8 +82,30 @@ public class CheckoutProfile : Profile
                                                PassFeesToCustomer = res.PassFeesToCustomer
                                              },
                                    });
+    
+      CreateMap < CheckoutApiResponse, CheckoutResponse>()
+     .ConstructUsing((res, ctx) => new CheckoutResponse()
+                                   {
+                                     Id = res.Id,
+                                     Metadata = res.Metadata,
+                                     Amount = res.Amount,
+                                     Currency = ctx.Mapper.Map<Currency>(res.Currency),
+                                     CheckoutUrl = new Uri(res.CheckoutUrl),
+                                     WebhookEndpointUrl = new Uri(res.WebhookEndpointUrl),
+                                     OnFailureRedirectUrl = new Uri(res.OnFailureRedirectUrl),
+                                     OnSuccessRedirectUrl = new Uri(res.OnSuccessRedirectUrl),
+                                     PaymentLinkId = res.PaymentLinkId,
+                                     CustomerId = res.CustomerId,
+                                     InvoiceId = res.InvoiceId,
+                                     Fees = res.Fees,
+                                     Status = Enum.GetValues<CheckoutStatus>().FirstOrDefault(x => x.ToString().Equals(res.Status, StringComparison.OrdinalIgnoreCase)),
+                                     Language = Language.GetLocalType(res.Language) ?? LocaleType.English,
+                                     Description = res.Description,
+                                     PaymentMethod = Enum.GetValues<PaymentMethod>().FirstOrDefault(x => x.ToString().Equals(res.PaymentMethod, StringComparison.OrdinalIgnoreCase)),
+                                     PassFeesToCustomer = res.PassFeesToCustomer
+                                   });
 
-    CreateMap<(CheckoutApiResponse Response, List<CheckoutItem> Items, Customer? Customer, PaymentLink? PaymentLink), Response<CheckoutResponse>>()
+    CreateMap<(CheckoutApiResponse Response, List<CheckoutItem>? Items, Customer? Customer, PaymentLinkResponse? PaymentLink), Response<CheckoutResponse>>()
      .ConstructUsing((res, ctx) => new Response<CheckoutResponse>()
                                    {
                                      Id = res.Response.Id,
@@ -95,25 +119,25 @@ public class CheckoutProfile : Profile
                                                Amount = res.Response.Amount,
                                                Currency = ctx.Mapper.Map<Currency>(res.Response.Currency),
                                                CheckoutUrl = new Uri(res.Response.CheckoutUrl),
-                                               WebhookEndpointUrl = new Uri(res.Response.CheckoutUrl),
-                                               OnFailureRedirectUrl = new Uri(res.Response.CheckoutUrl),
-                                               OnSuccessRedirectUrl = new Uri(res.Response.CheckoutUrl),
+                                               WebhookEndpointUrl = new Uri(res.Response.WebhookEndpointUrl),
+                                               OnFailureRedirectUrl = new Uri(res.Response.OnFailureRedirectUrl),
+                                               OnSuccessRedirectUrl = new Uri(res.Response.OnSuccessRedirectUrl),
                                                Customer = res.Customer,
                                                PaymentLink = res.PaymentLink,
                                                PaymentLinkId = res.Response.PaymentLinkId,
                                                CustomerId = res.Response.CustomerId,
                                                InvoiceId = res.Response.InvoiceId,
                                                Fees = res.Response.Fees,
-                                               Status = Enum.Parse<CheckoutStatus>(res.Response.Status),
+                                               Status = Enum.GetValues<CheckoutStatus>().FirstOrDefault(x => x.ToString().Equals(res.Response.Status, StringComparison.OrdinalIgnoreCase)),
                                                Language = Language.GetLocalType(res.Response.Language) ?? LocaleType.English,
                                                Description = res.Response.Description,
                                                Items = res.Items,
-                                               PaymentMethod = Enum.Parse<PaymentMethod>(res.Response.PaymentMethod),
+                                               PaymentMethod = Enum.GetValues<PaymentMethod>().FirstOrDefault(x => x.ToString().Equals(res.Response.PaymentMethod, StringComparison.OrdinalIgnoreCase)),
                                                PassFeesToCustomer = res.Response.PassFeesToCustomer
                                              },
                                    });
 
-    CreateMap<(CheckoutApiResponse Response, List<CheckoutItem> Items, Customer? Customer, PaymentLink? PaymentLink), CheckoutResponse>()
+    CreateMap<(CheckoutApiResponse Response, List<CheckoutItem>? Items, Customer? Customer, PaymentLinkResponse? PaymentLink), CheckoutResponse>()
      .ConstructUsing((res, ctx) => new CheckoutResponse()
                                    {
                                      Id = res.Response.Id,
@@ -121,20 +145,20 @@ public class CheckoutProfile : Profile
                                      Amount = res.Response.Amount,
                                      Currency = ctx.Mapper.Map<Currency>(res.Response.Currency),
                                      CheckoutUrl = new Uri(res.Response.CheckoutUrl),
-                                     WebhookEndpointUrl = new Uri(res.Response.CheckoutUrl),
-                                     OnFailureRedirectUrl = new Uri(res.Response.CheckoutUrl),
-                                     OnSuccessRedirectUrl = new Uri(res.Response.CheckoutUrl),
+                                     WebhookEndpointUrl = new Uri(res.Response.WebhookEndpointUrl),
+                                     OnFailureRedirectUrl = new Uri(res.Response.OnFailureRedirectUrl),
+                                     OnSuccessRedirectUrl = new Uri(res.Response.OnSuccessRedirectUrl),
                                      Customer = res.Customer,
                                      PaymentLink = res.PaymentLink,
                                      PaymentLinkId = res.Response.PaymentLinkId,
                                      CustomerId = res.Response.CustomerId,
                                      InvoiceId = res.Response.InvoiceId,
                                      Fees = res.Response.Fees,
-                                     Status = Enum.Parse<CheckoutStatus>(res.Response.Status),
+                                     Status = Enum.GetValues<CheckoutStatus>().FirstOrDefault(x => x.ToString().Equals(res.Response.Status, StringComparison.OrdinalIgnoreCase)),
                                      Language = Language.GetLocalType(res.Response.Language) ?? LocaleType.English,
                                      Description = res.Response.Description,
                                      Items = res.Items,
-                                     PaymentMethod = Enum.Parse<PaymentMethod>(res.Response.PaymentMethod),
+                                     PaymentMethod = Enum.GetValues<PaymentMethod>().FirstOrDefault(x => x.ToString().Equals(res.Response.PaymentMethod, StringComparison.OrdinalIgnoreCase)),
                                      PassFeesToCustomer = res.Response.PassFeesToCustomer
                                    });
 

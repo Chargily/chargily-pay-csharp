@@ -21,31 +21,31 @@ public class FakeData
           .Generate();
   }
 
-  public static CreatePrice CreatePrice(Func<Faker<CreatePrice>, Faker<CreatePrice>>? modifier = null)
+  public static CreatePrice CreatePrice(string productId, Func<Faker<CreatePrice>, Faker<CreatePrice>>? modifier = null)
   {
     return new Faker<CreatePrice>()
           .CustomInstantiator(f => new CreatePrice()
                                    {
                                      Amount = f.Finance.Amount(100, 2000),
                                      Currency = Currency.DZD,
-                                     ProductId = Nanoid.Generate(size: 26),
+                                     ProductId = productId,
                                      Metadata = ["Metadata" ],
                                    })
           .Map(x => modifier?.Invoke(x) ?? x)
           .Generate();
   }
 
-  public static Checkout Checkout(string customerId, Func<Faker<Checkout>, Faker<Checkout>>? modifier = null)
+  public static Checkout Checkout(Func<Faker<Checkout>, Faker<Checkout>>? modifier = null)
   {
     return new Faker<Checkout>()
-          .CustomInstantiator(f => new Checkout(f.Finance.Amount(100, 2000), Currency.DZD, customerId)
+          .CustomInstantiator(f => new Checkout(f.Finance.Amount(100, 2000), Currency.DZD)
                                    {
                                      Metadata = ["Metadata" ],
                                      Description = f.Random.String2(10),
                                      PaymentMethod = f.PickRandom<PaymentMethod>(),
-                                     WebhookEndpointUrl = new Uri(f.Internet.Url() + "/endpoint"),
-                                     OnFailureRedirectUrl = new Uri(f.Internet.Url()),
-                                     OnSuccessRedirectUrl = new Uri(f.Internet.Url()),
+                                     WebhookEndpointUrl = new Uri(f.Internet.UrlWithPath("https", "myapp.com")),
+                                     OnFailureRedirectUrl = new Uri(f.Internet.UrlWithPath("https", "myapp.com")),
+                                     OnSuccessRedirectUrl = new Uri(f.Internet.UrlWithPath("https", "myapp.com")),
                                      PassFeesToCustomer = f.PickRandom(true, false),
                                      Language = f.PickRandom<LocaleType>(),
                                    })
@@ -53,22 +53,19 @@ public class FakeData
           .Generate();
   }
 
-  public static CreateCheckoutItem CreateCheckoutItem(Func<Faker<CreateCheckoutItem>, Faker<CreateCheckoutItem>>? modifier = null)
+  public static CheckoutPriceItem CreateCheckoutPriceItem(string priceId, Func<Faker<CheckoutPriceItem>, Faker<CheckoutPriceItem>>? modifier = null)
   {
-    return new Faker<CreateCheckoutItem>()
-          .CustomInstantiator(f => new CreateCheckoutItem()
+    return new Faker<CheckoutPriceItem>()
+          .CustomInstantiator(f => new CheckoutPriceItem()
                                    {
-                                     Amount = f.Finance.Amount(100, 2000),
-                                     Currency = Currency.DZD,
                                      Quantity = f.Random.Number(1, 20),
-                                     ProductId = Nanoid.Generate(size: 26),
-                                     Metadata = ["Metadata" ],
+                                     PriceId = priceId
                                    })
           .Map(x => modifier?.Invoke(x) ?? x)
           .Generate();
   }
 
-  public static Checkout CheckoutWithItems(List<CreateCheckoutItem> items, Func<Faker<Checkout>, Faker<Checkout>>? modifier = null)
+  public static Checkout CheckoutWithItems(List<CheckoutPriceItem> items, Func<Faker<Checkout>, Faker<Checkout>>? modifier = null)
   {
     return new Faker<Checkout>()
           .CustomInstantiator(f => new Checkout(items)
@@ -76,10 +73,9 @@ public class FakeData
                                      Metadata = ["Metadata" ],
                                      Description = f.Random.String2(10),
                                      PaymentMethod = f.PickRandom<PaymentMethod>(),
-                                     CustomerId = Nanoid.Generate(size: 26),
-                                     WebhookEndpointUrl = new Uri(f.Internet.Url()),
-                                     OnFailureRedirectUrl = new Uri(f.Internet.Url()),
-                                     OnSuccessRedirectUrl = new Uri(f.Internet.Url()),
+                                     WebhookEndpointUrl = new Uri(f.Internet.UrlWithPath("https", "myapp.com")),
+                                     OnFailureRedirectUrl = new Uri(f.Internet.UrlWithPath("https", "myapp.com")),
+                                     OnSuccessRedirectUrl = new Uri(f.Internet.UrlWithPath("https", "myapp.com")),
                                      PassFeesToCustomer = f.PickRandom(true, false),
                                      Language = f.PickRandom<LocaleType>(),
                                    })

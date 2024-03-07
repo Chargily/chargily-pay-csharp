@@ -10,7 +10,7 @@ public class PriceTests : BaseTest
     var product = FakeData.CreateProduct();
     var productActual = await _chargilyPayClient.AddProduct(product);
 
-    var expected = FakeData.CreatePrice(f => f.RuleFor(x => x.ProductId, productActual.Id));
+    var expected = FakeData.CreatePrice(productActual.Id);
     var actual = await _chargilyPayClient.AddPrice(expected);
 
     Assert.Multiple(() =>
@@ -29,7 +29,7 @@ public class PriceTests : BaseTest
     var product = FakeData.CreateProduct();
     var productActual = await _chargilyPayClient.AddProduct(product);
 
-    var price = FakeData.CreatePrice(f => f.RuleFor(x => x.ProductId, productActual.Id));
+    var price = FakeData.CreatePrice(productActual.Id);
     var expected = await _chargilyPayClient.AddPrice(price);
     var actual = await _chargilyPayClient.GetPrice(expected.Id);
     

@@ -4,15 +4,16 @@ using FluentValidation;
 
 namespace Chargily.Pay.V2.Internal.Requests;
 
-internal record CheckoutItemRequest
+internal record CheckoutItemPriceRequest
 {
-  public string Price { get; init; }
+  [JsonPropertyName("price")]
+  public string PriceId { get; init; }
   public int Quantity { get; init; }
 }
 
 internal record CreateCheckoutRequest
 {
-  public CheckoutItemRequest[]? Items { get; internal set; } = null;
+  public CheckoutItemPriceRequest[]? Items { get; internal set; } = null;
   public decimal? Amount { get; init; }
   public string? Currency { get; init; }
   [JsonPropertyName("customer_id")] public string? CustomerId { get; init; }
@@ -50,11 +51,10 @@ internal class CreateCheckoutRequestValidator : AbstractValidator<CreateCheckout
      .Otherwise(() => RuleForEach(x => x.Items)
                  .ChildRules(item =>
                              {
-                               item.RuleFor(x => x.Price)
+                               item.RuleFor(x => x.PriceId)
                                    .NotEmpty()
-                                   .NotNull()
-                                   .Must(x => decimal.TryParse(x, out _))
-                                   .WithMessage(x => $"'{x}' is not a valid price!");
+                                   .NotNull();
+                               
                                item.RuleFor(x => x.Quantity)
                                    .NotNull()
                                    .GreaterThanOrEqualTo(1);

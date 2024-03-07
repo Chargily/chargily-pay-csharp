@@ -565,7 +565,6 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
     _logger?.LogInformation("Creating a new Checkout...");
     _logger?.LogDebug("Creating a new Checkout...\n{@request}", request.Stringify());
     var requestJson = request.Stringify(true);
-    _logger?.LogInformation("{0}", requestJson);
     var response = await _chargilyPayApi.CreateCheckout(request);
     var result = _mapper.Map<Response<CheckoutResponse>>(response);
     _logger?.LogInformation("Checkout created, with invoice-id {@id} and checkout-url: {@url}",
@@ -648,7 +647,7 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                           foreach (var item in response)
                                                           {
                                                             var product = await GetProduct(item.ProductId);
-                                                            result.Add(_mapper.Map<CheckoutItem>((item, product)));
+                                                            result.Add(_mapper.Map<CheckoutItem>((item, product?.Value)));
                                                           }
 
                                                           _logger?.LogInformation("Fetched {count} Checkout items.", result.Count);
@@ -659,6 +658,17 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                         });
   }
 
+  private async Task<T?> TryCatchNull<T>(Func<Task<T>> execute)
+  {
+    try
+    {
+      return await execute();
+    }
+    catch
+    {
+      return default(T);
+    }
+  }
   public Task<Response<CheckoutResponse>?> GetCheckout(string id)
   {
     return _cache.GetOrCreateAsync<Response<CheckoutResponse>?>(CacheKey.From(EntityType.CheckoutItem, _config.Value, id),
@@ -668,11 +678,11 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                                   _logger?.LogInformation("Fetching Checkout of id: {@id}...", id);
                                                                   var response =
                                                                     await _retryPipeline.ExecuteAsync(async (_) => await _chargilyPayApi.GetCheckout(id));
-                                                                  var customer = GetCustomer(response.CustomerId);
-                                                                  var paymentLink = await GetPaymentLink(response.PaymentLinkId);
+                                                                  var customer = await TryCatchNull(() => GetCustomer(response.CustomerId));
+                                                                  var paymentLink = await TryCatchNull(() =>  GetPaymentLink(response.PaymentLinkId));
                                                                   var items = await GetCheckoutItems(id);
                                                                   var result =
-                                                                    _mapper.Map<Response<CheckoutResponse>>((response, items, customer, paymentLink));
+                                                                    _mapper.Map<Response<CheckoutResponse>>((response, items, customer?.Value, paymentLink?.Value));
                                                                   _logger?.LogDebug("Fetched Checkout:\n{@data}", result.Stringify());
                                                                   cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Checkout));
                                                                   cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Product));

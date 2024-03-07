@@ -79,9 +79,9 @@ public class CustomerProfile : Profile
                                      Data = ctx.Mapper.Map<List<Customer>>(res.Data),
                                      CurrentPage = res.CurrentPage,
                                      FirstPage = res.FirstPageUrl.GetPageOrDefault(1),
-                                     //LastPage = res.LastPageUrl.GetPageOrDefault(1),
+                                     LastPage = res.GetTotalPages(),
                                      NextPage = res.NextPageUrl?.GetPage(),
-                                     PreviousPage = res.NextPageUrl?.GetPage(),
+                                     PreviousPage = res.PreviousPageUrl?.GetPage(),
                                      PageSize = res.PageSize,
                                      Total = res.Total
                                    });

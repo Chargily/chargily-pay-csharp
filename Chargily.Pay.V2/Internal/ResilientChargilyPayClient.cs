@@ -16,13 +16,14 @@ using Polly;
 using Polly.Retry;
 
 namespace Chargily.Pay.V2.Internal;
+
 /// <summary>
 /// <b>Chargily Pay V2</b> client with builtin <i>Caching + Retry on failure</i> 
 /// </summary>
 internal class ResilientChargilyPayClient : IChargilyPayClient
 {
   internal event Action OnDisposing;
-  
+
   private readonly IChargilyPayApi _chargilyPayApi;
   private readonly IServiceProvider _provider;
   private readonly IOptions<ChargilyConfig> _config;
@@ -33,6 +34,7 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
 
   private IDisposable _balanceObservable;
   private IDisposable _cacheObservable;
+
   public void Dispose()
   {
     _balanceObservable?.Dispose();
@@ -40,12 +42,13 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
     _cache?.Dispose();
     OnDisposing?.Invoke();
   }
+
   public ResilientChargilyPayClient(IMemoryCache cache,
-                                   IMapper mapper,
-                                   ILogger<ResilientChargilyPayClient> logger,
-                                   IChargilyPayApi chargilyPayApi,
-                                   IServiceProvider provider,
-                                   IOptions<ChargilyConfig> config)
+                                    IMapper mapper,
+                                    ILogger<ResilientChargilyPayClient> logger,
+                                    IChargilyPayApi chargilyPayApi,
+                                    IServiceProvider provider,
+                                    IOptions<ChargilyConfig> config)
   {
     _mapper = mapper;
     _logger = logger;
@@ -75,11 +78,13 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                     .Build();
     StartDataRefreshers();
   }
-  
+
 
   private readonly ConcurrentDictionary<EntityType, List<CancellationTokenSource>> _cancellations =
     new ConcurrentDictionary<EntityType, List<CancellationTokenSource>>();
+
   private event Action<EntityType> OnDataStale;
+
   private void StartDataRefreshers()
   {
     _cacheObservable = Observable.FromEvent<EntityType>(h => OnDataStale += h, h => OnDataStale -= h)
@@ -98,12 +103,15 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                                             x.Cancel();
                                                                             x.Dispose();
                                                                           }
-                                                                          catch{}
+                                                                          catch
+                                                                          {
+                                                                          }
                                                                         });
                                            _cancellations[type].Clear();
                                          }
-                                         catch{}
-                                         
+                                         catch
+                                         {
+                                         }
                                        }
                                      })
                                  .Subscribe();
@@ -115,10 +123,11 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                               {
                                 await GetBalance();
                               }
-                              catch {}
+                              catch
+                              {
+                              }
                             })
                         .Subscribe();
-
   }
 
   private IValidator<T> GetValidator<T>() => _provider.GetRequiredService<IValidator<T>>();
@@ -127,13 +136,12 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
   {
     var cancellationTokenSource = new CancellationTokenSource();
     var cancellation = new CancellationChangeToken(cancellationTokenSource.Token);
-    if(_cancellations.TryGetValue(entityType, out var list));
+    if (_cancellations.TryGetValue(entityType, out var list)) ;
     {
       list?.Add(cancellationTokenSource);
     }
     return cancellation;
   }
-
 
 
   private async Task<List<T>> ExhaustAllPages<T>(Func<int, Task<PagedApiResponse<T>>> fetchFunction)
@@ -262,8 +270,8 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                         foreach (var item in response.Data)
                                                         {
                                                           var items = await GetProductItems(item.Id);
-                                                          var product = _mapper.Map<Product>((item, items));
-                                                          products.Add(product);
+                                                          var product = _mapper.Map<Response<Product>>((item, items));
+                                                          products.Add(product.Value);
                                                           _cache.Set(CacheKey.From(EntityType.Product, _config.Value, item.Id),
                                                                      product, _config.Value.GetCacheDuration());
                                                         }
@@ -323,11 +331,11 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
     var current = await GetProducts(1);
     do
     {
-      if (current.Data is not null)
-        foreach (var item in current.Data)
-          yield return _mapper.Map<Product>(item)!;
-      if (current.NextPage is not null) current = await GetProducts((int)current.NextPage);
-    } while (current.NextPage is not null && current.NextPage != current.LastPage);
+      foreach (var item in current.Data)
+        yield return _mapper.Map<Product>(item)!;
+      if (!current.HasNextPage) break;
+      current = await GetProducts((int)current.NextPage!);
+    } while (current.CurrentPage <= current.TotalPages && current.Data is not { Count: 0 });
   }
 
 #endregion
@@ -380,8 +388,8 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                          ?.LogInformation("Fetching Customers. Page: {@pageNumber}, Page Size: {@pageSize}",
                                                                           page, pageSize);
                                                          var response = await _retryPipeline.ExecuteAsync(async (_) =>
-                                                                                                                await _chargilyPayApi
-                                                                                                                 .GetCustomers(page, pageSize));
+                                                                                                            await _chargilyPayApi
+                                                                                                             .GetCustomers(page, pageSize));
                                                          var result = _mapper.Map<PagedResponse<Customer>>(response);
                                                          foreach (var item in result.Data)
                                                          {
@@ -422,8 +430,9 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
     {
       foreach (var item in current.Data)
         yield return item;
-      if (current.NextPage is not null) current = await GetCustomers((int)current.NextPage);
-    } while (current.NextPage is not null && current.NextPage != current.LastPage);
+      if (!current.HasNextPage) break;
+      current = await GetCustomers((int)current.NextPage!);
+    } while (current.CurrentPage <= current.TotalPages && current.Data is not { Count: 0 });
   }
 
 #endregion
@@ -473,8 +482,9 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                                   async (cacheEntry) =>
                                                                   {
                                                                     cacheEntry.AbsoluteExpirationRelativeToNow = _config.Value.GetCacheDuration();
-                                                                    _logger?.LogInformation("Fetching Payment Links. Page: {@pageNumber}, Page Size: {@pageSize}",
-                                                                                            page, pageSize);
+                                                                    _logger
+                                                                    ?.LogInformation("Fetching Payment Links. Page: {@pageNumber}, Page Size: {@pageSize}",
+                                                                                     page, pageSize);
                                                                     var response = await _retryPipeline.ExecuteAsync(async (_) =>
                                                                                      await _chargilyPayApi.GetPaymentLinks(page, pageSize));
                                                                     var paymentLinkItems = new List<PaymentLinkResponse>();
@@ -524,8 +534,9 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
     {
       foreach (var item in current.Data)
         yield return item;
-      if (current.NextPage is not null) current = await GetPaymentLinks((int)current.NextPage);
-    } while (current.NextPage is not null && current.NextPage != current.LastPage);
+      if (!current.HasNextPage) break;
+      current = await GetPaymentLinks((int)current.NextPage!);
+    } while (current.CurrentPage <= current.TotalPages && current.Data is not { Count: 0 });
   }
 
 
@@ -605,20 +616,20 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                                    var checkoutItems =
                                                                      await ExhaustAllPages<CheckoutItemApiResponse>(p =>
                                                                        _chargilyPayApi.GetCheckoutItems(checkoutResponseItem.Id, p));
-                                                                   var customer = await GetCustomer(checkoutResponseItem.CustomerId);
-                                                                   var paymentLink = await GetPaymentLink(checkoutResponseItem.PaymentLinkId);
+                                                                   var customer = await TryCatchNull(()=>  GetCustomer(checkoutResponseItem.CustomerId));
+                                                                   var paymentLink = await TryCatchNull(()=>  GetPaymentLink(checkoutResponseItem.PaymentLinkId));
 
                                                                    var items = new List<CheckoutItem>();
                                                                    foreach (var checkoutItemResponse in checkoutItems)
                                                                    {
                                                                      var product = await GetProduct(checkoutItemResponse.ProductId);
-                                                                     var mapped = _mapper.Map<CheckoutItem>((checkoutItemResponse, product));
+                                                                     var mapped = _mapper.Map<CheckoutItem>((checkoutItemResponse, product?.Value));
                                                                      _cache.Set(CacheKey.From(EntityType.CheckoutItem, _config.Value, mapped.Id),
                                                                                 mapped, _config.Value.GetCacheDuration());
                                                                      items.Add(mapped);
                                                                    }
 
-                                                                   var checkoutResponse = _mapper.Map<CheckoutResponse>((items, customer, paymentLink));
+                                                                   var checkoutResponse = _mapper.Map<CheckoutResponse>((checkoutResponseItem, items, customer?.Value, paymentLink?.Value));
                                                                    dataItems.Add(checkoutResponse);
                                                                  }
 
@@ -642,7 +653,8 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                             _config.Value.GetCacheDuration();
                                                           _logger?.LogInformation("Fetching Checkout items of id: {@id}...", checkoutId);
                                                           var response =
-                                                            await ExhaustAllPages<CheckoutItemApiResponse>(p => _chargilyPayApi.GetCheckoutItems(checkoutId, p));
+                                                            await ExhaustAllPages<CheckoutItemApiResponse>(p => _chargilyPayApi
+                                                             .GetCheckoutItems(checkoutId, p));
                                                           var result = new List<CheckoutItem>();
                                                           foreach (var item in response)
                                                           {
@@ -669,6 +681,7 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
       return default(T);
     }
   }
+
   public Task<Response<CheckoutResponse>?> GetCheckout(string id)
   {
     return _cache.GetOrCreateAsync<Response<CheckoutResponse>?>(CacheKey.From(EntityType.CheckoutItem, _config.Value, id),
@@ -679,10 +692,11 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                                   var response =
                                                                     await _retryPipeline.ExecuteAsync(async (_) => await _chargilyPayApi.GetCheckout(id));
                                                                   var customer = await TryCatchNull(() => GetCustomer(response.CustomerId));
-                                                                  var paymentLink = await TryCatchNull(() =>  GetPaymentLink(response.PaymentLinkId));
+                                                                  var paymentLink = await TryCatchNull(() => GetPaymentLink(response.PaymentLinkId));
                                                                   var items = await GetCheckoutItems(id);
                                                                   var result =
-                                                                    _mapper.Map<Response<CheckoutResponse>>((response, items, customer?.Value, paymentLink?.Value));
+                                                                    _mapper.Map<Response<CheckoutResponse>>((response, items, customer?.Value,
+                                                                            paymentLink?.Value));
                                                                   _logger?.LogDebug("Fetched Checkout:\n{@data}", result.Stringify());
                                                                   cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Checkout));
                                                                   cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Product));
@@ -698,8 +712,9 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
     {
       foreach (var item in current.Data)
         yield return item;
-      if (current.NextPage is not null) current = await GetCheckouts((int)current.NextPage);
-    } while (current.NextPage is not null && current.NextPage != current.LastPage);
+      if (!current.HasNextPage) break;
+      current = await GetCheckouts((int)current.NextPage!);
+    } while (current.CurrentPage <= current.TotalPages && current.Data is not { Count: 0 });
   }
 
 #endregion
@@ -757,7 +772,7 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                       foreach (var item in response.Data)
                                                       {
                                                         var product = await GetProduct(item.ProductId);
-                                                        var mapped = _mapper.Map<Price>((item, product));
+                                                        var mapped = _mapper.Map<Price>((item, product?.Value));
                                                         prices.Add(mapped);
                                                       }
 
@@ -776,8 +791,9 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
     {
       foreach (var item in current.Data)
         yield return item;
-      if (current.NextPage is not null) current = await GetPrices((int)current.NextPage);
-    } while (current.NextPage is not null && current.NextPage != current.LastPage);
+      if (!current.HasNextPage) break;
+      current = await GetPrices((int)current.NextPage!);
+    } while (current.CurrentPage <= current.TotalPages && current.Data is not { Count: 0 });
   }
 
   public Task<Response<Price>?> GetPrice(string id)
@@ -798,6 +814,4 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
   }
 
 #endregion
-
-
 }

@@ -142,6 +142,35 @@ public class CheckoutTests : BaseTest
   }
   
   [Test]
+  public async Task Enumerate_Checkouts_Should_Succeed()
+  {
+    var product = FakeData.CreateProduct();
+    var actualProduct = await _chargilyPayClient.AddProduct(product);
+    
+    var price = FakeData.CreatePrice(actualProduct.Id);
+    var actualPrice = await _chargilyPayClient.AddPrice(price);
+    
+    var item = FakeData.CreateCheckoutPriceItem(actualPrice.Id);
+    var expected = FakeData.CheckoutWithItems([item]);
+
+    await _chargilyPayClient.CreateCheckout(expected);
+
+    var firstPage = await _chargilyPayClient.GetCheckouts();
+    var actual = _chargilyPayClient.Checkouts();
+    
+    Assert.Multiple(async () =>
+                    {
+                      var count = 0; 
+                      await foreach (var checkout in actual)
+                      {
+                        Assert.That(checkout, Is.Not.Null);
+                        count++;
+                      }
+                      Assert.That(count, Is.EqualTo(firstPage.Total));
+                    });
+  }
+  
+  [Test]
   public async Task CancelCheckout_Should_Succeed()
   {
     var product = FakeData.CreateProduct();

@@ -45,4 +45,28 @@ public class PriceTests : BaseTest
                       Assert.That(actual.Value.Product, Is.Not.Null);
                     });
   }
+  
+  [Test]
+  public async Task Enumerate_Prices_Should_Succeed()
+  {
+    var product = FakeData.CreateProduct();
+    var productActual = await _chargilyPayClient.AddProduct(product);
+
+    var priceModel = FakeData.CreatePrice(productActual.Id);
+    await _chargilyPayClient.AddPrice(priceModel);
+
+    var firstPage = await _chargilyPayClient.GetPrices();
+    var actual = _chargilyPayClient.Prices();
+    
+    Assert.Multiple(async () =>
+                    {
+                      var count = 0; 
+                      await foreach (var price in actual)
+                      {
+                        Assert.That(price, Is.Not.Null);
+                        count++;
+                      }
+                      Assert.That(count, Is.EqualTo(firstPage.Total));
+                    });
+  }
 }

@@ -6,8 +6,7 @@ namespace Chargily.Pay.V2.Internal.Requests;
 
 internal record CheckoutItemPriceRequest
 {
-  [JsonPropertyName("price")]
-  public string PriceId { get; init; }
+  [JsonPropertyName("price")] public string PriceId { get; init; }
   public int Quantity { get; init; }
 }
 
@@ -28,6 +27,12 @@ internal record CreateCheckoutRequest
   public bool PassFeesToCustomer { get; init; }
 
   public List<string>? Metadata { get; init; } = new();
+  
+  [JsonPropertyName("shipping_address")]
+  public string? ShippingAddress { get; init; }
+    
+  [JsonPropertyName("collect_shipping_address")]
+  public bool CollectShippingAddress { get; init; }
 }
 
 internal class CreateCheckoutRequestValidator : AbstractValidator<CreateCheckoutRequest>
@@ -54,7 +59,7 @@ internal class CreateCheckoutRequestValidator : AbstractValidator<CreateCheckout
                                item.RuleFor(x => x.PriceId)
                                    .NotEmpty()
                                    .NotNull();
-                               
+
                                item.RuleFor(x => x.Quantity)
                                    .NotNull()
                                    .GreaterThanOrEqualTo(1);

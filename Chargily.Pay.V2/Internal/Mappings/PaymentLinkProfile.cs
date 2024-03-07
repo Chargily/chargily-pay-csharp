@@ -72,9 +72,9 @@ public class PaymentLinkProfile : Profile
                                      Data = res.Items,
                                      CurrentPage = res.Response.CurrentPage,
                                      FirstPage = res.Response.FirstPageUrl.GetPageOrDefault(1),
-                                     //LastPage = res.Response.LastPageUrl.GetPageOrDefault(1),
+                                     LastPage = res.Response.GetTotalPages(),
                                      NextPage = res.Response.NextPageUrl?.GetPage(),
-                                     PreviousPage = res.Response.NextPageUrl?.GetPage(),
+                                     PreviousPage = res.Response.PreviousPageUrl?.GetPage(),
                                      PageSize = res.Response.PageSize,
                                      Total = res.Response.Total
                                    });

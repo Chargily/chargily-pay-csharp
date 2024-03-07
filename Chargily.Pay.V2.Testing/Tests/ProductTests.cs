@@ -32,4 +32,31 @@ public class ProductTests : BaseTest
                       Assert.That(actual.Id, Is.EqualTo(expected.Id));
                     });
   }
+  
+  [Test]
+  public async Task Enumerate_Products_Should_Succeed()
+  {
+    var expected = Enumerable
+                  .Range(0, 3)
+                  .Select(_ => FakeData.CreateProduct())
+                  .ToList();
+    foreach (var product in expected)
+    {
+      await _chargilyPayClient.AddProduct(product);
+    }
+
+    var firstPage = await _chargilyPayClient.GetProducts();
+    var actual = _chargilyPayClient.Products();
+    
+    Assert.Multiple(async () =>
+                    {
+                      var count = 0; 
+                      await foreach (var product in actual)
+                      {
+                        Assert.That(product, Is.Not.Null);
+                        count++;
+                      }
+                      Assert.That(count, Is.EqualTo(firstPage.Total));
+                    });
+  }
 }

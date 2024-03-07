@@ -25,5 +25,12 @@ internal record CheckoutApiResponse : BaseObjectApiResponse
     public decimal Fees { get; init; }
     [JsonPropertyName("payment_link_id")] public string? PaymentLinkId { get; init; }
     [JsonPropertyName("invoice_id")] public string InvoiceId { get; init; }
-    [JsonPropertyName("checkout_url")] public string CheckoutUrl { get; init; }
+    [JsonPropertyName("checkout_url")] public string? CheckoutUrl { get; init; }
+    
+    [JsonPropertyName("shipping_address")]
+    public string? ShippingAddress { get; init; }
+    
+    [JsonPropertyName("collect_shipping_address")]
+    [JsonConverter(typeof(IntegerToBooleanConverter))]
+    public bool CollectShippingAddress { get; init; }
 };

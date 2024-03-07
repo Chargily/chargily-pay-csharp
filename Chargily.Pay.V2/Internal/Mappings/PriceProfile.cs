@@ -88,9 +88,9 @@ public class PriceProfile : Profile
                                      Data = ctx.Mapper.Map<List<Price>>(res.Data),
                                      CurrentPage = res.CurrentPage,
                                      FirstPage = res.FirstPageUrl.GetPageOrDefault(1),
-                                     //LastPage = res.LastPageUrl.GetPageOrDefault(1),
+                                     LastPage = res.GetTotalPages(),
                                      NextPage = res.NextPageUrl?.GetPage(),
-                                     PreviousPage = res.NextPageUrl?.GetPage(),
+                                     PreviousPage = res.PreviousPageUrl?.GetPage(),
                                      PageSize = res.PageSize,
                                      Total = res.Total
                                    });
@@ -101,9 +101,9 @@ public class PriceProfile : Profile
                                      Data = res.Prices,
                                      CurrentPage = res.Response.CurrentPage,
                                      FirstPage = res.Response.FirstPageUrl.GetPageOrDefault(1),
-                                     //LastPage = res.Response.LastPageUrl.GetPageOrDefault(1),
+                                     LastPage = res.Response.GetTotalPages(),
                                      NextPage = res.Response.NextPageUrl?.GetPage(),
-                                     PreviousPage = res.Response.NextPageUrl?.GetPage(),
+                                     PreviousPage = res.Response.PreviousPageUrl?.GetPage(),
                                      PageSize = res.Response.PageSize,
                                      Total = res.Response.Total
                                    });

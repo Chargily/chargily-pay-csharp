@@ -19,10 +19,13 @@ public sealed record CheckoutResponse
     public bool PassFeesToCustomer { get; init; }
     public List<string>? Metadata { get; init; } = new();
     
-    public Uri CheckoutUrl { get; init; }
+    public Uri? CheckoutUrl { get; init; }
     public string InvoiceId { get; init; }
     public PaymentLink? PaymentLink { get; internal set; }
     public string? PaymentLinkId { get; init; }
     public decimal Fees { get; init; }
     public CheckoutStatus Status { get; init; }
+    
+    public string? ShippingAddress { get; init; }
+    public bool CollectShippingAddress { get; init; }
 }

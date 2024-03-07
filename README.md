@@ -12,7 +12,4 @@ Only `.NET6.0` and newer versions are supported.
 
 _**NOTE:**  Ability to receive checkout status with Webhook endpoint is only possible with project types that can host an HTTP Server._
 
-C# Library for Chargily Pay™ Gateway - V2.
-The easiest and free way to integrate e-payment API through EDAHABIA of Algerie Poste and CIB of SATIM
-
 _**Documentations are WORK IN PROGRESS...**_

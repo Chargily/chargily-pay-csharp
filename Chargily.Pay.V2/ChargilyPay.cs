@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -48,12 +49,12 @@ public static class ChargilyPay
                                                             return new RefitSettings()
                                                                    {
                                                                      ContentSerializer = new SystemTextJsonContentSerializer(jsonOptions),
-                                                                     // AuthorizationHeaderValueGetter =
-                                                                     //   (_, _) => { return Task.FromResult($"Bearer {config.ApiSecretKey}"); },
                                                                      ExceptionFactory = async (message) =>
                                                                                         {
                                                                                           if (message.IsSuccessStatusCode) return null;
                                                                                           var response = await message.Content.ReadAsStringAsync();
+                                                                                          if (message.StatusCode == HttpStatusCode.TooManyRequests)
+                                                                                            return new ChargilyPayApiTooManyRequestsException(response);
                                                                                           return new ChargilyPayApiException((int)message.StatusCode, response);
                                                                                         }
                                                                    };

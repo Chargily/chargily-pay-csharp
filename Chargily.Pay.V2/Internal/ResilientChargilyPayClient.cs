@@ -2,6 +2,7 @@
 using System.Reactive.Linq;
 using AutoMapper;
 using Chargily.Pay.V2.Abstractions;
+using Chargily.Pay.V2.Exceptions;
 using Chargily.Pay.V2.Internal.Endpoints;
 using Chargily.Pay.V2.Internal.Requests;
 using Chargily.Pay.V2.Internal.Responses;
@@ -62,8 +63,18 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                     .AddRetry(new RetryStrategyOptions()
                               {
                                 DelayGenerator =
-                                  (attempt) => ValueTask.FromResult<TimeSpan?>(_config.Value.DelayPerRetryCalculator?.Invoke(attempt.AttemptNumber) ??
-                                                                               TimeSpan.FromMilliseconds(500 * attempt.AttemptNumber)),
+                                  (attempt) =>
+                                  {
+                                    if (attempt.Outcome.Exception is not ChargilyPayApiTooManyRequestsException)
+                                      return ValueTask.FromResult<TimeSpan?>(_config.Value.DelayPerRetryCalculator?.Invoke(attempt.AttemptNumber) ??
+                                                                             TimeSpan.FromMilliseconds(500 * attempt.AttemptNumber));
+                                    
+                                    _logger?.LogWarning("Chargily Pay V2 API rate-limit reached! Backing off for {seconds:N3} seconds",
+                                                        _config.Value.TooManyRequestsBackOffDuration.TotalSeconds);
+                                    
+                                    return ValueTask.FromResult<TimeSpan?>(_config.Value.TooManyRequestsBackOffDuration);
+
+                                  },
                                 OnRetry = (ctx) =>
                                           {
                                             logger

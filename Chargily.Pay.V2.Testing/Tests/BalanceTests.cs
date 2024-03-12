@@ -1,4 +1,7 @@
-﻿namespace Chargily.Pay.V2.Testing.Tests;
+﻿using Chargily.Pay.V2.Models;
+using Chargily.Pay.V2;
+
+namespace Chargily.Pay.V2.Testing.Tests;
 
 public class BalanceTests : BaseTest
 {

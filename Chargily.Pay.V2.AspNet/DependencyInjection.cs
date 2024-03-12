@@ -11,22 +11,24 @@ public static class DependencyInjection
 {
   public static IServiceCollection AddChargilyPayWebhookValidationMiddleware(this IServiceCollection services)
   {
-    return services.AddSingleton<ChargilyPayWebhookValidatorMiddleware>();
+    return services
+          .AddSingleton<IWebhookValidator>(provider => provider.GetRequiredService<IChargilyPayClient>().WebhookValidator)
+          .AddSingleton<ChargilyPayWebhookValidatorMiddleware>();
   }
 
   public static WebApplication UseChargilyPayWebhookValidation(this WebApplication application)
   {
-     application.UseMiddleware<ChargilyPayWebhookValidatorMiddleware>();
-     return application;
+    application.UseMiddleware<ChargilyPayWebhookValidatorMiddleware>();
+    return application;
   }
 
   public static RouteHandlerBuilder MapChargilyPayWebhookEndpoint(this WebApplication app, string endpointPath = "/chargily/webhook")
   {
-    return app.MapPost(endpointPath,
+    return app.MapMethods(endpointPath, [HttpMethods.Get, HttpMethods.Post],
                        ([FromServices] IWebhookValidator validator, HttpContext context, [FromBody] WebhookRequest body) =>
                        {
                          var isValid = context.Items.ContainsKey(ChargilyPayWebhookValidatorMiddleware.IsValidHttpContextItemKey) ||
-                           validator.Validate(context.Request.Headers["Signature"].First()!, context.Request.Body);
+                                       validator.Validate(context.Request.Headers["Signature"].First()!, context.Request.Body);
                          return isValid ? Results.Ok(body.Data) : Results.Unauthorized();
                        });
   }

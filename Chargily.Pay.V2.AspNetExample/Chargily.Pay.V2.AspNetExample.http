@@ -1,0 +1,6 @@
+@Chargily.Pay.V2.AspNetExample_HostAddress = http://localhost:5243
+
+GET {{Chargily.Pay.V2.AspNetExample_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

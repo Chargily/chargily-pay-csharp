@@ -468,12 +468,13 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
     _logger?.LogInformation("Creating a new Payment-link...");
     _logger?.LogDebug("Creating a new Payment-link...\n{@request}", request.Stringify());
     var response = await _chargilyPayApi.CreatePaymentLink(request);
-    var result = _mapper.Map<Response<PaymentLinkResponse>>(response);
+    var items = await _chargilyPayApi.GetPaymentLinkItems(response.Id);
+    var result = await GetPaymentLink(response!.Id);
     _logger?.LogInformation("Payment-link created, with id {@id} and url: {@url}",
                             result.Value.Id, result.Value.Url);
     _logger?.LogDebug("Payment-link created:\n{@response}", result.Stringify());
     OnDataStale.Invoke(EntityType.PaymentLink);
-    return result;
+    return result!;
   }
 
   public async Task<Response<PaymentLinkResponse>> UpdatePaymentLink(UpdatePaymentLink update)
@@ -487,10 +488,10 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
     _logger?.LogInformation("Update Payment-link of id: {@}...", request.Id);
     _logger?.LogDebug("Update Payment-link of id: {@} with:\n{@request}", request.Id, request.Stringify(true));
     var response = await _chargilyPayApi.UpdatePaymentLink(request.Id, request);
-    var result = _mapper.Map<Response<PaymentLinkResponse>>(response);
+    var result = await GetPaymentLink(response!.Id);
     _logger?.LogDebug("Payment-link updated:\n{@response}", result.Stringify());
     OnDataStale.Invoke(EntityType.PaymentLink);
-    return result;
+    return result!;
   }
 
   public Task<PagedResponse<PaymentLinkResponse>> GetPaymentLinks(int page = 1, int pageSize = 50)
@@ -535,7 +536,7 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                              foreach (var item in response)
                                                              {
                                                                var product = await GetProduct(item.ProductId);
-                                                               result.Add(_mapper.Map<PaymentLinkItem>((item, product)));
+                                                               result.Add(_mapper.Map<PaymentLinkItem>((item, product?.Value)));
                                                              }
 
                                                              _logger?.LogInformation("Fetched {count} Payment-Link items.", result.Count);
@@ -570,8 +571,16 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                                                  id);
                                                          var response = await _retryPipeline.ExecuteAsync(async (_) =>
                                                                                                             await _chargilyPayApi.GetPaymentLink(id));
-                                                         var items = await _chargilyPayApi.GetPaymentLinkItems(id);
-                                                         var result = _mapper.Map<Response<PaymentLinkResponse>>((response, items));
+                                                         var items = await ExhaustAllPages((page) => _chargilyPayApi.GetPaymentLinkItems(id, page));
+
+                                                         var paymentLinkItems = new List<PaymentLinkItem>();
+                                                         foreach (var item in items)
+                                                         {
+                                                           var product = await GetProduct(item.ProductId);
+                                                           var paymentLinkItem = _mapper.Map<PaymentLinkItem>((item, product?.Value));
+                                                           paymentLinkItems.Add(paymentLinkItem);
+                                                         }
+                                                         var result = _mapper.Map<Response<PaymentLinkResponse>>((response, paymentLinkItems));
 
                                                          _logger?.LogDebug("Fetched Product:\n{}", result.Stringify());
                                                          cacheEntry.AddExpirationToken(CreateCacheExpiration(EntityType.Product));

@@ -10,6 +10,14 @@ public class PaymentLinkProfile : Profile
   public PaymentLinkProfile()
   {
 
+    CreateMap<PaymentLinkPriceItem, PaymentLinkItemPriceRequest>()
+     .ConstructUsing((req, ctx) => new PaymentLinkItemPriceRequest()
+                                   {
+                                     Quantity = req.Quantity,
+                                     PriceId = req.PriceId,
+                                     AdjustableQuantity = req.AdjustableQuantity
+                                   });
+    
     CreateMap<CreatePaymentLink, CreatePaymentLinkRequest>()
      .ConstructUsing((req, ctx) => new CreatePaymentLinkRequest()
                                    {
@@ -18,7 +26,10 @@ public class PaymentLinkProfile : Profile
                                      Language = Language.GetLanguage(req.Language) ?? "en",
                                      CompletionMessage = req.CompletionMessage,
                                      IsActive = req.IsActive,
-                                     Name = req.Name
+                                     Name = req.Name,
+                                     Items = ctx.Mapper.Map<List<PaymentLinkItemPriceRequest>>(req.Items),
+                                     CollectShippingAddress = req.CollectShippingAddress,
+                                     // ShippingAddress = req.ShippingAddress
                                    });
     CreateMap<UpdatePaymentLink, UpdatePaymentLinkRequest>()
      .ConstructUsing((req, ctx) => new UpdatePaymentLinkRequest()
@@ -29,10 +40,13 @@ public class PaymentLinkProfile : Profile
                                      Language = Language.GetLanguage(req.Language ?? LocaleType.English),
                                      CompletionMessage = req.CompletionMessage,
                                      IsActive = req.IsActive,
-                                     Name = req.Name
+                                     Name = req.Name,
+                                     CollectShippingAddress = req.CollectShippingAddress,
+                                     // ShippingAddress = req.ShippingAddress,
+                                     Items = ctx.Mapper.Map<List<PaymentLinkItemPriceRequest>>(req.Items),
                                    });
 
-    CreateMap<(PaymentLinkApiResponse Response, List<PaymentLinkItem> Items), Response<PaymentLinkResponse>>()
+    CreateMap<(PaymentLinkApiResponse Response, List<PaymentLinkItem>? Items), Response<PaymentLinkResponse>>()
      .ConstructUsing((res, ctx) => new Response<PaymentLinkResponse>()
                                    {
                                      Id = res.Response.Id,
@@ -49,10 +63,12 @@ public class PaymentLinkProfile : Profile
                                                CompletionMessage = res.Response.CompletionMessage,
                                                IsActive = res.Response.IsActive,
                                                Name = res.Response.Name,
-                                               Url = new Uri(res.Response.Url),
+                                               Url = Uri.TryCreate(res.Response.Url, UriKind.Absolute, out var uri) ? uri: null ,
+                                               // ShippingAddress = res.Response.ShippingAddress,
+                                               CollectShippingAddress = res.Response.CollectShippingAddress
                                              },
                                    });
-    CreateMap<(PaymentLinkApiResponse Response, List<PaymentLinkItem> Items), PaymentLinkResponse>()
+    CreateMap<(PaymentLinkApiResponse Response, List<PaymentLinkItem>? Items), PaymentLinkResponse>()
      .ConstructUsing((res, ctx) => new PaymentLinkResponse()
                                    {
                                      Id = res.Response.Id,
@@ -63,7 +79,10 @@ public class PaymentLinkProfile : Profile
                                      CompletionMessage = res.Response.CompletionMessage,
                                      IsActive = res.Response.IsActive,
                                      Name = res.Response.Name,
-                                     Url = new Uri(res.Response.Url),
+                                     Url = Uri.TryCreate(res.Response.Url, UriKind.Absolute, out var uri) ? uri: null ,
+                                     // ShippingAddress = res.Response.ShippingAddress,
+                                     CollectShippingAddress = res.Response.CollectShippingAddress,
+                                     
                                    });
 
     CreateMap<(PagedApiResponse<PaymentLinkApiResponse> Response, List<PaymentLinkResponse> Items), PagedResponse<PaymentLinkResponse>>()
@@ -79,12 +98,12 @@ public class PaymentLinkProfile : Profile
                                      Total = res.Response.Total
                                    });
 
-    CreateMap<(PaymentLinkItemApiResponse Response, Product? Product), PaymentLinkItem>()
-     .ConstructUsing((res, _) => new PaymentLinkItem()
+    CreateMap<(PaymentLinkItemApiResponse? Response, Product? Product), PaymentLinkItem>()
+     .ConstructUsing((res, ctx) => new PaymentLinkItem()
                                  {
                                    Metadata = res.Response.Metadata,
                                    Amount = res.Response.Amount,
-                                   Currency = Enum.Parse<Currency>(res.Response.Currency),
+                                   Currency = ctx.Mapper.Map<Currency>(res.Response.Currency),
                                    Product = res.Product,
                                    Quantity = res.Response.Quantity,
                                    ProductId = res.Response.ProductId,

@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Chargily.Pay.V2.Internal.JsonConverters;
 
 namespace Chargily.Pay.V2.Internal.Responses;
 
@@ -15,8 +16,16 @@ internal record PaymentLinkApiResponse : BaseObjectApiResponse
     [JsonPropertyName("pass_fees_to_customer")]
     public bool PassFeesToCustomer { get; init; }
 
+    [JsonPropertyName("url")]
     public string Url { get; init; }
 
     public List<string>? Metadata { get; init; } = new();
+    
+    // [JsonPropertyName("shipping_address")]
+    // public string? ShippingAddress { get; init; }
+    
+    [JsonPropertyName("collect_shipping_address")]
+    [JsonConverter(typeof(IntegerToBooleanConverter))]
+    public bool CollectShippingAddress { get; init; }
 
 };

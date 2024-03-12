@@ -19,6 +19,14 @@ internal record UpdatePaymentLinkRequest
   public bool? PassFeesToCustomer { get; init; }
 
   public List<string>? Metadata { get; init; } = new();
+  public IReadOnlyList<PaymentLinkItemPriceRequest>? Items { get; init; }
+  
+  // [JsonPropertyName("shipping_address")]
+  // public string? ShippingAddress { get; init; }
+
+  [JsonPropertyName("collect_shipping_address")]
+  public bool? CollectShippingAddress { get; init; }
+
 }
 
 internal class UpdatePaymentLinkRequestValidator : AbstractValidator<UpdatePaymentLinkRequest>
@@ -36,5 +44,9 @@ internal class UpdatePaymentLinkRequestValidator : AbstractValidator<UpdatePayme
               .NotNull()
               .Must(x => Language.GetLocalType(x!) is not null)
               .WithMessage("Must be one of the following values : 'ar','fr','en'"));
+
+    When(x => x.Items is not null,
+         () => RuleFor(x => x.Items)
+          .NotEmpty());
   }
 }

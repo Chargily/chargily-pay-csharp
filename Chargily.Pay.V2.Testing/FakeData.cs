@@ -83,17 +83,35 @@ public class FakeData
           .Generate();
   }
 
-  public static CreatePaymentLink CreatePaymentLink(Func<Faker<CreatePaymentLink>, Faker<CreatePaymentLink>>? modifier = null)
+  public static PaymentLinkPriceItem CreatePaymentLinkPriceItem(string priceId, 
+                                                                Func<Faker<PaymentLinkPriceItem>, Faker<PaymentLinkPriceItem>>? modifier = null)
+  {
+    return new Faker<PaymentLinkPriceItem>()
+          .CustomInstantiator(f => new PaymentLinkPriceItem()
+                                   {
+                                     Quantity = f.Random.Number(1, 20),
+                                     PriceId = priceId,
+                                     AdjustableQuantity = f.PickRandom(true, false)
+                                   })
+          .Map(x => modifier?.Invoke(x) ?? x)
+          .Generate();
+  }
+  
+  public static CreatePaymentLink CreatePaymentLink(List<PaymentLinkPriceItem> items,
+                                                    Func<Faker<CreatePaymentLink>, Faker<CreatePaymentLink>>? modifier = null)
   {
     return new Faker<CreatePaymentLink>()
-          .CustomInstantiator(f => new CreatePaymentLink()
+          .CustomInstantiator(f => new CreatePaymentLink(items)
                                    {
                                      Metadata = ["Metadata" ],
                                      PassFeesToCustomer = f.PickRandom(true, false),
                                      Language = f.PickRandom<LocaleType>(),
                                      Name = f.Random.String2(10),
                                      CompletionMessage = f.Random.String2(10),
-                                     IsActive = f.PickRandom(true, false)
+                                     IsActive = f.PickRandom(true, false),
+                                     // ShippingAddress = f.Address.FullAddress(),
+                                     CollectShippingAddress = f.PickRandom(true, false)
+                                     
                                    })
           .Map(x => modifier?.Invoke(x) ?? x)
           .Generate();

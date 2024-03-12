@@ -9,4 +9,10 @@ public sealed record UpdatePaymentLink
     public LocaleType? Language { get; init; }
     public bool? PassFeesToCustomer { get; init; }
     public List<string>? Metadata { get; init; } = new();
+    
+    // public string? ShippingAddress { get; init; }
+    public bool? CollectShippingAddress { get; init; }
+    
+    public IReadOnlyList<PaymentLinkPriceItem>? Items { get; init; }
+
 }

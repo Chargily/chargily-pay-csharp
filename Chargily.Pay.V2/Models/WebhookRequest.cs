@@ -1,6 +1,6 @@
 ﻿namespace Chargily.Pay.V2.Models;
 
-public sealed record WebhookResponse
+public sealed record WebhookRequest
 {
   public string Id { get; init; }
   public bool IsLiveMode { get; init; }

@@ -9,8 +9,8 @@ public class WebhookProfile : Profile
   public WebhookProfile()
   {
 
-    CreateMap<WebhookApiResponse, WebhookResponse>()
-     .ConstructUsing((res, ctx) => new WebhookResponse()
+    CreateMap<WebhookApiResponse, WebhookRequest>()
+     .ConstructUsing((res, ctx) => new WebhookRequest()
                                    {
                                      Id = res.Id,
                                      CreatedAt = DateTimeOffset.FromUnixTimeSeconds(res.CreatedAt),

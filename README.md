@@ -272,7 +272,7 @@ _**NOTE:**  Checkout can be created with list of prices or using an [amount + cu
 ```
 
 # Usage with ASP.NET WebApi:
-### Install [`Chargily.Pay.V2.AspNet` Nuget Package]():
+### Install [`Chargily.Pay.V2.AspNet` Nuget Package](https://www.nuget.org/packages/Chargily.Pay.V2.AspNet):
 ```powershell
 dotnet add Chargily.Pay.V2.AspNet
 ```

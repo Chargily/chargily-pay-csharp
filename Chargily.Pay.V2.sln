@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chargily.Pay.V2", "Chargily.Pay.V2\Chargily.Pay.V2.csproj", "{3EE2608B-8050-4310-986B-9E8AEA8110D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chargily.Pay.V2.Testing", "Chargily.Pay.V2.Testing\Chargily.Pay.V2.Testing.csproj", "{53EBA11E-23F6-4E9A-95EA-FFDCF8EB7B21}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chargily.Pay.V2.AspNet", "Chargily.Pay.V2.AspNet\Chargily.Pay.V2.AspNet.csproj", "{1881CB7C-0119-4E41-BB05-57317C8BBACB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3EE2608B-8050-4310-986B-9E8AEA8110D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EE2608B-8050-4310-986B-9E8AEA8110D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EE2608B-8050-4310-986B-9E8AEA8110D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EE2608B-8050-4310-986B-9E8AEA8110D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53EBA11E-23F6-4E9A-95EA-FFDCF8EB7B21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53EBA11E-23F6-4E9A-95EA-FFDCF8EB7B21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53EBA11E-23F6-4E9A-95EA-FFDCF8EB7B21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53EBA11E-23F6-4E9A-95EA-FFDCF8EB7B21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1881CB7C-0119-4E41-BB05-57317C8BBACB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1881CB7C-0119-4E41-BB05-57317C8BBACB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1881CB7C-0119-4E41-BB05-57317C8BBACB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1881CB7C-0119-4E41-BB05-57317C8BBACB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -11,7 +11,7 @@ A fully-featured client library to work with **Chargily Pay API version 2** Onli
 Only `.NET6.0` and newer versions are supported.
 
 _**NOTE:**  Ability to receive checkout status with Webhook endpoint is only possible with project types that can host an HTTP Server._
-# Documentations Summary:[.gitignore](.gitignore)
+# Documentations Summary:
 - [Installation](#installation)
 - [Getting Started:](#g[.gitignore](.gitignore)etting-started)
   + [Create a checkout without Product & Price](#create-a-checkout-without-product-price)

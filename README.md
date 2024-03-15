@@ -1,9 +1,9 @@
 <img src="https://raw.githubusercontent.com/rainxh11/chargily-pay-csharp/main/Assets/chargily_wide.svg" width="300"/>
 
-| Nuget Pacakge                                                                                                                                                  | Downloads                                                                |
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| Chargily.Pay.V2: <br/>[![Latest version](https://img.shields.io/nuget/v/Chargily.Pay.V2.svg)](https://www.nuget.org/packages/Chargily.Pay.V2/)                      | ![Downloads](https://img.shields.io/nuget/dt/Chargily.Pay.V2.svg)        |
-| Chargily.Pay.V2.AspNet:<br/> [![Latest version](https://img.shields.io/nuget/v/Chargily.Pay.V2.AspNet.svg)](https://www.nuget.org/packages/Chargily.Pay.V2.AspNet/) | ![Downloads](https://img.shields.io/nuget/dt/Chargily.Pay.V2.AspNet.svg) |
+| Nuget Pacakge                                                                                                                                                | Downloads                                                               |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| Chargily.Pay: <br/>[![Latest version](https://img.shields.io/nuget/v/Chargily.Pay.svg)](https://www.nuget.org/packages/Chargily.Pay/)                     | ![Downloads](https://img.shields.io/nuget/dt/Chargily.Pay.svg)        |
+| Chargily.Pay.AspNet:<br/> [![Latest version](https://img.shields.io/nuget/v/Chargily.Pay.AspNet.svg)](https://www.nuget.org/packages/Chargily.Pay.AspNet/) | ![Downloads](https://img.shields.io/nuget/dt/Chargily.Pay.AspNet.svg) |
 
 # Chargily Pay V2 .NET Client Library
 A fully-featured client library to work with **Chargily Pay API version 2** Online Payment Platform. The easiest and free way to integrate e-payment API through **EDAHABIA** of Algerie Poste and **CIB** of **SATIM**
@@ -27,19 +27,20 @@ _**NOTE:**  Ability to receive checkout status with Webhook endpoint is only pos
     - [Payment Links](#payment-links)
     - [Payment Links Items](#payment-links-items)
 - [Usage with ASP.NET WebApi:](#usage-with-aspnet-webapi)
-  + [Install Chargily.Pay.V2.AspNet Nuget Package](#install-chargilypayv2aspnet-nuget-package)
+  + [Install Chargily.Pay.AspNet Nuget Package](#install-chargilypayv2aspnet-nuget-package)
   + [Example Usage](#example-usage)
+  + [Webhook Signature Validation](#webhook-signature-validation)
 
 
 # Installation:
 #### __Using DotNet CLI :__
 ```powershell
-dotnet add Chargily.Pay.V2
+dotnet add Chargily.Pay
 ```
 # Getting Started:
 1. First create & configure a client:
 ```csharp
-    using Chargily.Pay.V2;
+    using Chargily.Pay;
     
     var chargilyClient = ChargilyPay.CreateResilientClient(config =>
                                                                {
@@ -178,7 +179,7 @@ _**NOTE:**  Checkout can be created with list of prices or using an [amount + cu
 ```
 - Configuring how often balance wallets are refreshed:
 ```csharp
-    using Chargily.Pay.V2;
+    using Chargily.Pay;
     
     var chargilyClient = ChargilyPay.CreateResilientClient(config =>
                                                                {
@@ -272,14 +273,14 @@ _**NOTE:**  Checkout can be created with list of prices or using an [amount + cu
 ```
 
 # Usage with ASP.NET WebApi:
-### Install [`Chargily.Pay.V2.AspNet` Nuget Package](https://www.nuget.org/packages/Chargily.Pay.V2.AspNet):
+### Install [`Chargily.Pay.AspNet` Nuget Package]():
 ```powershell
-dotnet add Chargily.Pay.V2.AspNet
+dotnet add Chargily.Pay.AspNet
 ```
 ### Example Usage:
 ````csharp
-    using Chargily.Pay.V2;
-    using Chargily.Pay.V2.AspNet;
+    using Chargily.Pay;
+    using Chargily.Pay.AspNet;
     
     var builder = WebApplication.CreateBuilder(args);
     
@@ -301,7 +302,21 @@ dotnet add Chargily.Pay.V2.AspNet
     app.UseChargilyPayWebhookValidation();
     
     // Map Webhook Endpoint to `both POST & GET /api/checkout-webhook`
-    app.MapChargilyPayWebhookEndpoint(endpointPath: "/api/checkout-webhook");
+    app.MapChargilyPayWebhookEndpoint("/chargily/webhook", async (webhookContext) =>
+                                                           {
+                                                             // you can access the webhook body, http context, validation result
+                                                             if (webhookContext.SignatureIsValid)
+                                                             {
+                                                               var body = webhookContext.Request;
+                                                               /* do something with the webhook request body */
+                                                             }
+                                                           });
     
     app.Run();
 ````
+### Webhook Signature Validation
+In the above example, the `Chargily.Pay.AspNet` provides built-in webhook signature validator middleware, you can register it with `builder.Services.AddChargilyPayWebhookValidationMiddleware()` then use it with `app.UseChargilyPayWebhookValidation()`.
+
+It will validate any `POST` request that have a header name: `signature`. You can override the header name with `app.UseChargilyPayWebhookValidation("another_name")`.
+
+Also built-in a minimal-webapi endpoint that can be registered with `app.MapChargilyPayWebhookEndpoint()`, and use it to access the webhook body without manually handling the validation.

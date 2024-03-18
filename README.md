@@ -1,12 +1,15 @@
-<img src="https://raw.githubusercontent.com/rainxh11/chargily-pay-csharp/main/Assets/chargily_wide.svg" width="300"/>
+# Welcome to C# Package Repository
+# for [Chargily Pay](https://chargily.com/business/pay "Chargily Pay")™ Gateway - V2.
+
+Thank you for your interest in C# Package of Chargily Pay™, an open source project by Chargily, a leading fintech company in Algeria specializing in payment solutions and  e-commerce facilitating, this Package is providing the easiest and free way to integrate e-payment API through widespread payment methods in Algeria such as EDAHABIA (Algerie Post) and CIB (SATIM) into your C#/ASP.NET projects.
+
+This package is developed by **Ahmed Chakhoum ([rainxh11](https://github.com/rainxh11))** and is open to contributions from developers like you.
 
 | Nuget Pacakge                                                                                                                                                | Downloads                                                               |
 |--------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
 | Chargily.Pay: <br/>[![Latest version](https://img.shields.io/nuget/v/Chargily.Pay.svg)](https://www.nuget.org/packages/Chargily.Pay/)                     | ![Downloads](https://img.shields.io/nuget/dt/Chargily.Pay.svg)        |
 | Chargily.Pay.AspNet:<br/> [![Latest version](https://img.shields.io/nuget/v/Chargily.Pay.AspNet.svg)](https://www.nuget.org/packages/Chargily.Pay.AspNet/) | ![Downloads](https://img.shields.io/nuget/dt/Chargily.Pay.AspNet.svg) |
 
-# Chargily Pay V2 .NET Client Library
-A fully-featured client library to work with **Chargily Pay API version 2** Online Payment Platform. The easiest and free way to integrate e-payment API through **EDAHABIA** of Algerie Poste and **CIB** of **SATIM**
 ## Support with the various .NET Project-types:
 Only `.NET6.0` and newer versions are supported.
 
@@ -320,3 +323,44 @@ In the above example, the `Chargily.Pay.AspNet` provides built-in webhook signat
 It will validate any `POST` request that have a header name: `signature`. You can override the header name with `app.UseChargilyPayWebhookValidation("another_name")`.
 
 Also built-in a minimal-webapi endpoint that can be registered with `app.MapChargilyPayWebhookEndpoint()`, and use it to access the webhook body without manually handling the validation.
+
+
+
+## About Chargily Pay™ packages
+
+Chargily Pay™ packages/plugins are a collection of open source projects published by Chargily to facilitate the integration of our payment gateway into different programming languages and frameworks. Our goal is to empower developers and businesses by providing easy-to-use tools to seamlessly accept payments.
+
+## API Documentation
+
+For detailed instructions on how to integrate with our API and utilize Chargily Pay™ in your projects, please refer to our [API Documentation](https://dev.chargily.com/pay-v2/introduction). 
+
+## Developers Community
+
+Join our developer community on Telegram to connect with fellow developers, ask questions, and stay updated on the latest news and developments related to Chargily Pay™ : [Telegram Community](https://chargi.link/PayTelegramCommunity)
+
+## How to Contribute
+
+We welcome contributions of all kinds, whether it's bug fixes, feature enhancements, documentation improvements, or new plugin/package developments. Here's how you can get started:
+
+1. **Fork the Repository:** Click the "Fork" button in the top-right corner of this page to create your own copy of the repository.
+
+2. **Clone the Repository:** Clone your forked repository to your local machine using the following command:
+
+```bash
+git clone https://github.com/Chargily/chargily-pay-csharp.git
+```
+
+3. **Make Changes:** Make your desired changes or additions to the codebase. Be sure to follow our coding standards and guidelines.
+
+4. **Test Your Changes:** Test your changes thoroughly to ensure they work as expected.
+
+5. **Submit a Pull Request:** Once you're satisfied with your changes, submit a pull request back to the main repository. Our team will review your contributions and provide feedback if needed.
+
+## Get in Touch
+
+Have questions or need assistance? Join our developer community on [Telegram](https://chargi.link/PayTelegramCommunity) and connect with fellow developers and our team.
+
+We appreciate your interest in contributing to Chargily Pay™! Together, we can build something amazing.
+
+Happy coding!
+

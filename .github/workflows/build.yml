@@ -34,16 +34,16 @@ jobs:
       - name: Compile
         run: dotnet build -c Release --no-restore
 
-      - name: Build Chargily.Pay.V2 Nuget Package
-        run: dotnet build ./Chargily.Pay.V2 -c Release --no-restore -p:Version=${{ env.RELEASE_VERSION }}
+      - name: Build Chargily.Pay Nuget Package
+        run: dotnet build ./Chargily.Pay -c Release --no-restore -p:Version=${{ env.RELEASE_VERSION }}
 
-      - name: Build Chargily.Pay.V2.AspNet Nuget Package
-        run: dotnet build ./Chargily.Pay.V2.AspNet -c Release --no-restore -p:Version=${{ env.RELEASE_VERSION }}
+      - name: Build Chargily.Pay.AspNet Nuget Package
+        run: dotnet build ./Chargily.Pay.AspNet -c Release --no-restore -p:Version=${{ env.RELEASE_VERSION }}
 
       - name: Test
         run: CHARGILY_SECRET_KEY=${{ env.CHARGILY_SECRET_KEY }} dotnet test -c Release --no-restore --no-build
-      - name: Upload Chargily.Pay.V2 Nuget Package
-        run: dotnet nuget push ./Chargily.Pay.V2/bin/Release/Chargily.Pay.V2.${{ env.RELEASE_VERSION }}.nupkg --skip-duplicate --api-key ${{ env.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      - name: Upload Chargily.Pay Nuget Package
+        run: dotnet nuget push ./Chargily.Pay/bin/Release/Chargily.Pay.${{ env.RELEASE_VERSION }}.nupkg --skip-duplicate --api-key ${{ env.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
 
-      - name: Upload Chargily.Pay.V2.AspNet Nuget Package
-        run: dotnet nuget push ./Chargily.Pay.V2.AspNet/bin/Release/Chargily.Pay.V2.AspNet.${{ env.RELEASE_VERSION }}.nupkg --skip-duplicate --api-key ${{ env.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      - name: Upload Chargily.Pay.AspNet Nuget Package
+        run: dotnet nuget push ./Chargily.Pay.AspNet/bin/Release/Chargily.Pay.AspNet.${{ env.RELEASE_VERSION }}.nupkg --skip-duplicate --api-key ${{ env.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

@@ -16,6 +16,7 @@
         <PackageTags>chargily;ccp;poste;algerieposte;epay;gateway;payment;edahabia;cib;ecommerce;satim;onlinepayment;aspnet;webapi;backend</PackageTags>
         <Product>Chargily.Pay.AspNet</Product>
         <PackageId>Chargily.Pay.AspNet</PackageId>
+        <Version>2.0.0</Version>
 
         <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 

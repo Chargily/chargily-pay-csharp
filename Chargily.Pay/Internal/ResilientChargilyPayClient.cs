@@ -271,6 +271,12 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
                                                        });
   }
 
+  public async Task DeleteProduct(string id)
+  {
+    await _chargilyPayApi.DeleteProduct(id);
+    OnDataStale.Invoke(EntityType.Product);
+  }
+
   public Task<PagedResponse<Product>> GetProducts(int page = 1, int pageSize = 50)
   {
     return
@@ -392,6 +398,12 @@ internal class ResilientChargilyPayClient : IChargilyPayClient
     _logger?.LogDebug("Customer updated:\n{@response}", result.Stringify());
     OnDataStale.Invoke(EntityType.Customer);
     return result;
+  }
+
+  public async Task DeleteCustomer(string id)
+  {
+    await _chargilyPayApi.DeleteCustomer(id);
+    OnDataStale.Invoke(EntityType.Customer);
   }
 
   public Task<PagedResponse<Customer>> GetCustomers(int page = 1, int pageSize = 50)

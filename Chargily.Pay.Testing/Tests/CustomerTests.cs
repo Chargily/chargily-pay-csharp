@@ -1,7 +1,23 @@
-﻿namespace Chargily.Pay.Testing.Tests;
+﻿using Chargily.Pay.Exceptions;
+
+namespace Chargily.Pay.Testing.Tests;
 
 public class CustomerTests : BaseTest
 {
+  [Test]
+  public async Task DeleteCustomer_Should_Succeed()
+  {
+    var expected = FakeData.CreateCustomer();
+
+    var created = await _chargilyPayClient.AddCustomer(expected);
+    await _chargilyPayClient.DeleteCustomer(created.Id);
+    
+    Assert.ThrowsAsync(typeof(ChargilyPayApiException), async () =>
+                                                        {
+                                                          var actual = await _chargilyPayClient.GetCustomer(created.Id);
+                                                        });
+  }
+  
   [Test]
   public async Task CreateCustomer_Should_Succeed()
   {

@@ -209,7 +209,10 @@ _**NOTE:**  Checkout can be created with list of prices or using an [amount + cu
       /* ... */
     }
 ```
-
+##### Delete Product:
+````csharp
+await chargilyClient.DeleteProduct("01hrtc39vq463jhnemv0q33mcq");
+`````
 #### Prices:
 ```csharp
     // by id
@@ -237,7 +240,10 @@ _**NOTE:**  Checkout can be created with list of prices or using an [amount + cu
       /* ... */
     }
 ```
-
+##### Delete Customer:
+````csharp
+await chargilyClient.DeleteCustomer("01hrsfjgvfvv1007y54y8fph1v");
+`````
 #### Checkouts:
 ```csharp
     // by id

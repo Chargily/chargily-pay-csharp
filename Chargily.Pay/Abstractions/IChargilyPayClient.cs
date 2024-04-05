@@ -12,11 +12,13 @@ public interface IChargilyPayClient : IDisposable
   Task<Response<Product>> AddProduct(CreateProduct product);
   Task<Response<Product>> UpdateProduct(UpdateCustomer update);
   Task<Response<Product>?> GetProduct(string id);
+  Task DeleteProduct(string id);
   Task<PagedResponse<Product>> GetProducts(int page = 1, int pageSize = 50);
   Task<List<Price>?> GetProductPrices(string productId);
   IAsyncEnumerable<Product> Products();
   Task<Response<Customer>> AddCustomer(CreateCustomer customer);
   Task<Response<Customer>> UpdateCustomer(UpdateCustomer update);
+  Task DeleteCustomer(string id);
   Task<PagedResponse<Customer>> GetCustomers(int page = 1, int pageSize = 50);
   Task<Response<Customer>?> GetCustomer(string id);
   IAsyncEnumerable<Customer?> Customers();

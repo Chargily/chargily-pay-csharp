@@ -39,9 +39,47 @@ public class BaseTest
   }
 
 
-  [TearDown]
-  public void TearDown()
+  public async Task Cleanup()
   {
+    await foreach (var product in _chargilyPayClient.Products())
+    {
+      try
+      {
+        await _chargilyPayClient.DeleteProduct(product.Id);
+      }
+      catch (Exception e)
+      {
+        Log.Logger.Warning(e.ToString());
+      }
+    }
+    await foreach (var customer in _chargilyPayClient.Customers())
+    {
+      try
+      {
+        await _chargilyPayClient.DeleteCustomer(customer!.Id);
+      }
+      catch (Exception e)
+      {
+        Log.Logger.Warning(e.ToString());
+      }
+    }
+    await foreach (var checkout in _chargilyPayClient.Checkouts())
+    {
+      try
+      {
+        await _chargilyPayClient.CancelCheckout(checkout!.Id);
+      }
+      catch (Exception e)
+      {
+        Log.Logger.Warning(e.ToString());
+      }
+    }
+  }
+  
+  [TearDown]
+  public async Task TearDown()
+  {
+    await Cleanup();
     _chargilyPayClient?.Dispose();
   }
 }

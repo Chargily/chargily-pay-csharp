@@ -28,6 +28,7 @@ internal record CheckoutApiResponse : BaseObjectApiResponse
     [JsonPropertyName("checkout_url")] public string? CheckoutUrl { get; init; }
     
     [JsonPropertyName("shipping_address")]
+    [JsonConverter(typeof(ShippingAddressToStringConverter))]
     public string? ShippingAddress { get; init; }
     
     [JsonPropertyName("collect_shipping_address")]

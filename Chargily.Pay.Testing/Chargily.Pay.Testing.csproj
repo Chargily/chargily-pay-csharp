@@ -9,6 +9,7 @@
         <IsTestProject>true</IsTestProject>
         <RootNamespace>Chargily.Pay.Testing</RootNamespace>
       <UserSecretsId>10aeb138-d320-4ebb-9249-cb8bed24385e</UserSecretsId>
+      <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
     <ItemGroup>

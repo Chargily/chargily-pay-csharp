@@ -10,6 +10,7 @@ internal sealed class ChargilyPayWebhookValidatorMiddleware(IWebhookValidator va
 {
   public const string IsValidHttpContextItemKey = "chargily_webhook_validated";
   internal static string SignatureHeaderName = "signature";
+
   public async Task InvokeAsync(HttpContext context, RequestDelegate next)
   {
     try
@@ -47,4 +48,3 @@ internal sealed class ChargilyPayWebhookValidatorMiddleware(IWebhookValidator va
     }
   }
 }
-

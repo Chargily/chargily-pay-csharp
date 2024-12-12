@@ -330,7 +330,12 @@ It will validate any `POST` request that have a header name: `signature`. You ca
 
 Also built-in a minimal-webapi endpoint that can be registered with `app.MapChargilyPayWebhookEndpoint()`, and use it to access the webhook body without manually handling the validation.
 
-
+## How to build nuget packages
+- Both `Chargily.Pay` & `Chargily.Pay.AspNet` nuget packages can be generated using this command:
+````powershell
+docker build . --output=./output
+````
+- `.nupkg` artifacts will be saved to `./output` folder
 
 ## About Chargily Pay™ packages
 
